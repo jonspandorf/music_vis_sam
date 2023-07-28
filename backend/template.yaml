@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Resources:
+  #### Frontend React Application hosting ####
+  MusicVizFrontend:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-web-app-s3-bucket"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    #### Bucket Policy to allow CDN https access ####
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MusicVizFrontendPolicy
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: 
+              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+            Action: 's3:GetObject'
+            Resource: !Sub
+              - 'arn:aws:s3:::${Bucket}/*'
+              - Bucket: !Ref MusicVizFrontend
+      Bucket: !Ref MusicVizFrontend
+  #### CDN For Client side ####
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+       DistributionConfig:
+        Origins:
+          - Id: MusicVizFrontend
+            DomainName: !GetAtt MusicVizFrontend.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
+          - Id: Backend
+            DomainName: !Sub "${UploadScoreApi}.execute-api.${AWS::Region}.amazonaws.com"
+            OriginPath: "/Prod"
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+        DefaultCacheBehavior:
+          TargetOriginId: MusicVizFrontend
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: true
+        CacheBehaviors:
+          - TargetOriginId: Backend
+            PathPattern: "api/*"
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
+            ViewerProtocolPolicy: https-only
+            AllowedMethods: [GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE]
+            ForwardedValues:
+              QueryString: true
+        Enabled: true
+        DefaultRootObject: index.html   
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties: 
+      CloudFrontOriginAccessIdentityConfig: 
+        Comment: CloudFront access identity     
+
+  #### Backend lambda worker  #####
+  MusicVizLambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ./worker
+      DockerTag: v1
+    Properties:
+      FunctionName: MusicVizWorker
+      PackageType: Image
+      MemorySize: 512
+      Policies: AmazonDynamoDBFullAccess
+      Timeout: 300
+      Architectures:
+        - x86_64
+      Events:
+        OnUpload:
+          Type: Api
+          Properties:
+            Path: /upload
+            Method: put
+            RestApiId: !Ref UploadScoreApi
+        Options:
+          Type: Api 
+          Properties:
+            Path: /upload
+            Method: OPTIONS
+            RestApiId: !Ref UploadScoreApi
+
+
+  ###### Api endpoint ########
+  UploadScoreApi:
+    Type: 'AWS::Serverless::Api'
+    Properties:
+      StageName: Prod
+      EndpointConfiguration:
+        Type: EDGE
+      Cors:
+        AllowMethods: "'PUT'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+      BinaryMediaTypes:
+        - '*/*'
+
+Outputs:
+  ApiEndpoint:
+    Description: API endpoint URL
+    Value: !Sub 'https://${UploadScoreApi}.execute-api.${AWS::Region}.amazonaws.com/Prod'
+
+  Website:
+    Value: !GetAtt CloudFrontDistribution.DomainName

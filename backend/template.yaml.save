@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+
+Resources:
+  MusicVizFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ./worker
+      DockerTag: v1
+    Properties:
+      PackageType: Image
+      Timeout: 300
+      MemorySize: 128
+      Policies: AmazonDynamoDBFullAccess
+      Architectures:
+        - x86_64
+      Events:
+        MySQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ScoresSQS.Arn
+      # Events:
+      #   HttpPost: 
+      #     Type: Api
+      #     Properties: 
+      #       Path: /upload
+      #       Method: post
+
+  ScoresBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: musicviz-scores-bucket
+
+  ScoresBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ScoresBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: "s3:*"
+            Resource: "arn:aws:s3:::musicviz-scores-bucket/*"
+
+  ApiEndpoint:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          title: "Music Viz API"
+        paths:
+          /upload:
+            post:
+              produces:
+                - application/json
+              responses:
+                "204":
+                  description: "204 repsonse"
+              x-amazon-apigateway-integration:
+#                uri: !Sub arn:aws:apigateway:${AWS::Region}:s3:path/musicviz-scores-bucket
+                uri: !GetAtt ScoresBucket.Arn
+                httpMethod: PUT
+                type: aws
+                passthroughBehavior: when_no_match
+                credentials: "arn:aws:iam::110828812774:role/ApiExecRole"
+                responses:
+                  default:
+                    statusCode: 204
+                    description: 'OK'
+                security:
+                - s3PutObjectPolicy: []
+              x-amazon-apigateway-policy:
+                Version: "2012-10-17"
+                Statement:
+                - Effect: "Allow"
+                  Action:
+                  - "s3:PutObject"
+                  Resource: "*"
+
+  ApiExecRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ApiExecRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+
+  SQSInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref MusicVizFunction
+      Action: lambda:InvokeFunction
+      Principal: sqs.amazonaws.com
+
+  ScoresSQS:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: scores-sqs
+      VisibilityTimeout: 300
+
+Outputs:
+  ApiEndpoint:
+    Description: URL endpoint of the API Gateway
+    Value: !Sub 'https://${ApiEndpoint}.execute-api.${AWS::Region}.amazonaws.com/prod/'
