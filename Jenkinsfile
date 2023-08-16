@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Build the application') {
             steps {
-                sh 'docker compose -f docker-compose-build up'
+                sh 'docker compose -f docker-compose-build.yaml up'
             }
         }
 
