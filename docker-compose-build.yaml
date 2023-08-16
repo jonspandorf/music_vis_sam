@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+
+  build_frontend:
+    image: node 
+    command: npm install && npm run build 
+    working_dir: /app 
+    volumes: 
+    - ./frontend:/app
+
+  build_backend:
+    image: amazon/aws-sam-cli-build-image-python3.9
+    command: |
+      sam build && sam deploy --stack-name ${STACK_NAME} \
+        --capabilities CAPABILITY_NAMED_IAM \
+        --region ${AWS_REGION} \
+        --s3-bucket ${ARTIFACTS_BUCKET} \
+        --no-fail-on-empty-changeset \
+    working_dir: /app 
+    volumes:
+    - ./backend:/app
+  
+
