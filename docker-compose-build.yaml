@@ -2,7 +2,7 @@ version: '3.8'
 services:
 
   build_frontend:
-    image: node 
+    image: node:18-alpine
     command: npm install && npm run build 
     working_dir: /app 
     volumes: 
