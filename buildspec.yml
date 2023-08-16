@@ -11,7 +11,7 @@ phases:
     commands:
       - echo "Linting the React application..."
       - cd ./frontend && npm run lint
-  build_backend:
+  build:
     commands:
       - echo "Deploying the sam application"
       - cd backend/
@@ -21,10 +21,8 @@ phases:
         --region ${AWS_REGION} \
         --s3-bucket ${ARTIFACTS_BUCKET} \
         --no-fail-on-empty-changeset \
-  build_frontend:
-    commands:
       - echo "Building the React application..."
-      - cd ./frontend && npm run build
+      - cd ../frontend && npm run build
       - s3 cp ./build s3://${STACK_NAME}-web-app-s3-bucket --recursive
   post_build:
     commands:
