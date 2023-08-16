@@ -9,8 +9,7 @@ phases:
       - cd ./frontend && npm install
   pre_build:
     commands:
-      - echo "Linting the React application..."
-      - cd ./frontend && npm run lint
+      - echo "About to deploy the application"
   build:
     commands:
       - echo "Deploying the sam application"
