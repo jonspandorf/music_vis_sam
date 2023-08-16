@@ -3,10 +3,12 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 18
+      docker: 18
     commands:
+      - docker pull node
       - echo "Installing dependencies..."
-      - cd ./frontend && npm install
+      - cd ./frontend 
+      - docker run --rm -it -v $PWD:/app -w /app npm install
   pre_build:
     commands:
       - echo "About to deploy the application"
@@ -21,7 +23,8 @@ phases:
         --s3-bucket ${ARTIFACTS_BUCKET} \
         --no-fail-on-empty-changeset \
       - echo "Building the React application..."
-      - cd ../frontend && npm run build
+      - cd ../frontend 
+      - docker run --rm -it -v $PWD:/app -w /app npm run build
       - s3 cp ./build s3://${STACK_NAME}-web-app-s3-bucket --recursive
   post_build:
     commands:
