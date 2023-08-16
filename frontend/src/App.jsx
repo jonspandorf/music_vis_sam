@@ -4,19 +4,21 @@ import React from 'react'
 import { Container } from 'react-bootstrap';
 import { useState } from 'react';
 import MusicGraph from './components/plotly';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
 function App() {
+
 
   const [ data, setData ] = useState(null)
 
   return (
-    <Container>
-      {
-        !data ? 
-          <UploadFile setData={setData}/> : 
-          <MusicGraph data={data} />
-      }
-    </Container>
+        <Router>
+          <Routes>
+            <Route path='/' element={<UploadFile setData={setData} />} />
+            <Route path='/graph' element={<MusicGraph data={data} />} />
+          </Routes>
+        </Router>
+
   );
 }
 

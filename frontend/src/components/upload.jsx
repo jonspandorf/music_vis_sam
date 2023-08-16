@@ -1,13 +1,14 @@
 
 import React, { useState } from 'react';
-import { Form, Button, Spinner, Typography } from 'react-bootstrap'
+import { Form, Button, Spinner, Container } from 'react-bootstrap'
 import 'bootstrap/dist/css/bootstrap.css';
 import { onPublishScore } from '../lib/api';
-
+import { useNavigate } from 'react-router-dom'
 
 
 const UploadFile = ({ setData }) => {
 
+    const navigate = useNavigate();
     const [ file, setFile ] = useState([])
     const [ isSubmitting, setSubmitting ] = useState(false)
 
@@ -21,10 +22,11 @@ const UploadFile = ({ setData }) => {
         const res = await onPublishScore(file)
         setData(JSON.parse(res.data))
         setSubmitting(false)
+        return navigate('/graph')
     }
 
     return (
-        <div >
+        <Container >
         <Form onSubmit={handleSubmission} className="d-flex flex-column justify-content-center align-items-center" style={{ height: '100vh' }}>
             <h2>Create a Musical Roadmap</h2>
         <Form.Group controlId="formFileLg" className="mb-3">
@@ -46,7 +48,7 @@ const UploadFile = ({ setData }) => {
             }
         </Button>
         </Form>
-        </div>
+        </Container>
     )
 }
 

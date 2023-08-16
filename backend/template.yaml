@@ -40,7 +40,7 @@ Resources:
               OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
           - Id: Backend
             DomainName: !Sub "${UploadScoreApi}.execute-api.${AWS::Region}.amazonaws.com"
-            OriginPath: "/Prod"
+            OriginPath: "/dev"
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
         DefaultCacheBehavior:
@@ -54,7 +54,7 @@ Resources:
             DefaultTTL: 0
             MinTTL: 0
             MaxTTL: 0
-            ViewerProtocolPolicy: https-only
+            ViewerProtocolPolicy: redirect-to-https
             AllowedMethods: [GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE]
             ForwardedValues:
               QueryString: true
@@ -86,13 +86,13 @@ Resources:
         OnUpload:
           Type: Api
           Properties:
-            Path: /upload
+            Path: /api/upload
             Method: put
             RestApiId: !Ref UploadScoreApi
         Options:
-          Type: Api 
+          Type: Api
           Properties:
-            Path: /upload
+            Path: /api/upload
             Method: OPTIONS
             RestApiId: !Ref UploadScoreApi
 
@@ -101,7 +101,7 @@ Resources:
   UploadScoreApi:
     Type: 'AWS::Serverless::Api'
     Properties:
-      StageName: Prod
+      StageName: dev
       EndpointConfiguration:
         Type: EDGE
       Cors:
@@ -115,7 +115,7 @@ Resources:
 Outputs:
   ApiEndpoint:
     Description: API endpoint URL
-    Value: !Sub 'https://${UploadScoreApi}.execute-api.${AWS::Region}.amazonaws.com/Prod'
+    Value: !Sub 'https://${UploadScoreApi}.execute-api.${AWS::Region}.amazonaws.com/dev'
 
   Website:
     Value: !GetAtt CloudFrontDistribution.DomainName
