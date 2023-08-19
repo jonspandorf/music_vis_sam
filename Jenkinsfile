@@ -3,13 +3,13 @@ pipeline {
 
     parameters {
         string(name: 'AWS_REGION', defaultValue: 'us-east-1', description: 'AWS region to deploy')
-        string(name: 'STACK_NAME', defaultValue: 'Music-Viz-App', description: 'The Cloudformation Stack name to deploy')
+        string(name: 'STACK_NAME', defaultValue: 'MusicVizApp', description: 'The Cloudformation Stack name to deploy')
         string(name: 'ARTIFACTS_BUCKET', defaultValue: 'aws-sam-cli-managed-default-samclisourcebucket-z917b5ff2qwb', description: 'S3 Bucket for SAM artifacts')
         string(name: 'BUCKET_NAME', defaultValue: 'static-website', description: 'Name of the static website hosted on S3 Bucket')
     }
 
     environment {
-        LAMBDA_ECR_REPO = sh(script: "aws ecr create-repository --repository-name ${STACK_NAME}-lambda-container --query 'repository.repositoryUri' --output text", returnStdout: true).trim()
+        LAMBDA_ECR_REPO = sh(script: "aws ecr create-repository --repository-name ${STACK_NAME}LambdaContainer --query 'repository.repositoryUri' --output text", returnStdout: true).trim()
     }
 
     triggers {
