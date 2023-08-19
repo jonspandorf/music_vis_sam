@@ -3,18 +3,35 @@ services:
 
   install_frontend:
     image: node:18-alpine
-    entrypoint: /bin/sh -c
-    command: "npm install && npm run build"
+    command: npm install
     working_dir: /app 
     volumes: 
     - ./frontend:/app
+  
+  build_frontend:
+    image: node:18-alpine
+    command: npm run build
+    working_dir: /app 
+    volumes: 
+    - ./frontend:/app
+    depends_on:
+      install_frontend:
+        condition: service_completed_successfully
+
 
   build_backend:
     image: public.ecr.aws/sam/build-python3.9:1.95.0-20230810182727
-    entrypoint: /bin/sh -c
+    command: sam build
+    working_dir: /app 
+    volumes:
+    - ./backend:/app
+    - /var/run/docker.sock:/var/run/docker.sock
+
+
+  deploy_backend:
+    image: public.ecr.aws/sam/build-python3.9:1.95.0-20230810182727
     command: |
-     "sam build \
-      && sam deploy --stack-name ${STACK_NAME} \
+      sam deploy --stack-name ${STACK_NAME} \
         --capabilities CAPABILITY_NAMED_IAM \
         --region ${AWS_REGION} \
         --s3-bucket ${ARTIFACTS_BUCKET} \
@@ -23,6 +40,7 @@ services:
     working_dir: /app 
     volumes:
     - ./backend:/app
-    - /var/run/docker.sock:/var/run/docker.sock
-  
+    depends_on:
+      build_backend:
+        condition: service_completed_successfully  
 
