@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Col, Container, Dropdown, Form, Row } from "react-bootstrap"
+import { Button, Container, Dropdown, Form, Row } from "react-bootstrap"
 
 
 const SelectMenu = ({ fields, setCompare, handleCompare, graphTypes }) => {
@@ -8,7 +8,7 @@ const SelectMenu = ({ fields, setCompare, handleCompare, graphTypes }) => {
     return (
         <>
             <Container>
-            <Col>
+            <Row>
             <Dropdown>
                 <Dropdown.Toggle variant="primary" id="checkfields">
                     Compare X axis
@@ -69,8 +69,9 @@ const SelectMenu = ({ fields, setCompare, handleCompare, graphTypes }) => {
                     }
                 </Dropdown.Menu>
             </Dropdown>
+            <Form.Check type="checkbox" label="Apply on all instruments?" onChange={(e)=>{setCompare(prevState => { return { ...prevState, applyOnAllInstruments: e.target.checked }})} }/>
             <Button color="success" onClick={handleCompare}>Compare</Button>
-            </Col>
+            </Row>
             </Container>
         </>
     )

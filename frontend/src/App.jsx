@@ -1,7 +1,6 @@
 import './App.css';
 import UploadFile from './components/upload';
 import React from 'react'
-import { Container } from 'react-bootstrap';
 import { useState } from 'react';
 import MusicGraph from './components/plotly';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'

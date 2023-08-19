@@ -1,12 +1,21 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 
+Parameters:
+  BUCKET_NAME:
+    Type: String
+    Description: This is an example parameter
+
 Resources:
   #### Frontend React Application hosting ####
   MusicVizFrontend:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${AWS::StackName}-web-app-s3-bucket"
+      BucketName: 
+        Fn::Join:
+          - '-'
+          -  - !Sub ${AWS::StackName}
+             - !Ref BUCKENT_NAME 
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true

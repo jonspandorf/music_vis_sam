@@ -1,23 +1,28 @@
 version: '3.8'
 services:
 
-  build_frontend:
+  install_frontend:
     image: node:18-alpine
-    command: npm install && npm run build 
+    entrypoint: /bin/sh -c
+    command: "npm install && npm run build"
     working_dir: /app 
     volumes: 
     - ./frontend:/app
 
   build_backend:
-    image: amazon/aws-sam-cli-build-image-python3.9
+    image: public.ecr.aws/sam/build-python3.9:1.95.0-20230810182727
+    entrypoint: /bin/sh -c
     command: |
-      sam build && sam deploy --stack-name ${STACK_NAME} \
+     "sam build \
+      && sam deploy --stack-name ${STACK_NAME} \
         --capabilities CAPABILITY_NAMED_IAM \
         --region ${AWS_REGION} \
         --s3-bucket ${ARTIFACTS_BUCKET} \
         --no-fail-on-empty-changeset \
+        --parameter-overrides BUCKENT_NAME=${BUCKET_NAME}"
     working_dir: /app 
     volumes:
     - ./backend:/app
+    - /var/run/docker.sock:/var/run/docker.sock
   
 
