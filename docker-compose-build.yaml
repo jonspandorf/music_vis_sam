@@ -2,14 +2,14 @@ version: '3.8'
 services:
 
   install_frontend:
-    image: node:18-alpine
+    image: node:16-alpine
     command: npm install
     working_dir: /app 
     volumes: 
     - ./frontend:/app
   
   build_frontend:
-    image: node:18-alpine
+    image: node:16-alpine
     command: npm run build
     working_dir: /app 
     volumes: 
@@ -36,6 +36,7 @@ services:
         --region ${AWS_REGION} \
         --s3-bucket ${ARTIFACTS_BUCKET} \
         --no-fail-on-empty-changeset \
+        --image-repository ${LAMBDA_ECR_REPO}
         --parameter-overrides BUCKENT_NAME=${BUCKET_NAME}
     working_dir: /app 
     volumes:
