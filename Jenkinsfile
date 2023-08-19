@@ -6,7 +6,6 @@ pipeline {
         string(name: 'STACK_NAME', defaultValue: 'MusicVizApp', description: 'The Cloudformation Stack name to deploy')
         string(name: 'ARTIFACTS_BUCKET', defaultValue: 'aws-sam-cli-managed-default-samclisourcebucket-z917b5ff2qwb', description: 'S3 Bucket for SAM artifacts')
         string(name: 'BUCKET_NAME', defaultValue: 'static-website', description: 'Name of the static website hosted on S3 Bucket')
-        string(name: 'LAMBDA_ECR_REPO', defaultValue: '110828812774.dkr.ecr.us-east-1.amazonaws.com/musicvizapp', description: 'Lambda container repo')
     }
 
 
