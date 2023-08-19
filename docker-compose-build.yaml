@@ -37,7 +37,7 @@ services:
         --s3-bucket ${ARTIFACTS_BUCKET} \
         --no-fail-on-empty-changeset \
         --image-repository ${LAMBDA_ECR_REPO}
-        --parameter-overrides BUCKENT_NAME=${BUCKET_NAME}
+        --parameter-overrides ParameterKey=BUCKENT_NAME,ParameterValue=${BUCKET_NAME}
     working_dir: /app 
     volumes:
     - ./backend:/app
