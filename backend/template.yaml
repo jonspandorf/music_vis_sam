@@ -82,7 +82,7 @@ Resources:
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./worker
-      DockerTag: v1
+      DockerTag: latest
     Properties:
       FunctionName: MusicVizWorker
       PackageType: Image
