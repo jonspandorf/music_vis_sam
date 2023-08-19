@@ -9,7 +9,8 @@ pipeline {
     }
 
     environment {
-        LAMBDA_ECR_REPO = sh(script: "aws ecr create-repository --repository-name ${STACK_NAME}.toLowerCase() --query 'repository.repositoryUri' --output text", returnStdout: true).trim()
+        REPO_NAME = params.STACK_NAME.toLowerCase()
+        LAMBDA_ECR_REPO = sh(script: "aws ecr create-repository --repository-name ${REPO_NAME} --query 'repository.repositoryUri' --output text", returnStdout: true).trim()
     }
 
     triggers {
