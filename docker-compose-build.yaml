@@ -31,12 +31,12 @@ services:
   deploy_backend:
     image: public.ecr.aws/sam/build-python3.9:1.95.0-20230810182727
     command: >
-      bash -c "sam deploy --stack-name ${STACK_NAME} \
+        sam deploy --stack-name ${STACK_NAME} \
         --capabilities CAPABILITY_NAMED_IAM \
         --region ${AWS_REGION} \
         --s3-bucket ${ARTIFACTS_BUCKET} \
         --no-fail-on-empty-changeset \
-        --parameter-overrides BUCKENT_NAME=${BUCKET_NAME}"
+        --parameter-overrides BUCKENT_NAME=${BUCKET_NAME}
     working_dir: /app 
     volumes:
     - ./backend:/app
