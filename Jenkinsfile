@@ -13,16 +13,9 @@ pipeline {
     }
 
     stages {
-        parallel{
-            stage('Build Frontend') {
-                steps {
-                    sh 'docker-compose -f ./docker-compose-build -p frontend run build_frontend -d'
-                }
-            }
-            stage('Build Backend') {
-                steps {
-                    sh 'docker-compose -f ./docker-compose-build -p backend run build_backend -d'
-                }
+        stage('Build applications') {
+            steps {
+                sh 'docker compose -f ./docker-compose-build.yaml up'
             }
         }
         stage('Copy Artifacts to S3') {
