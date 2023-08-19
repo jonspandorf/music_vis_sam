@@ -18,7 +18,6 @@ services:
       install_frontend:
         condition: service_completed_successfully
 
-
   build_backend:
     image: public.ecr.aws/sam/build-python3.9:1.95.0-20230810182727
     command: sam build
@@ -26,7 +25,6 @@ services:
     volumes:
     - ./backend:/app
     - /var/run/docker.sock:/var/run/docker.sock
-
 
   deploy_backend:
     image: public.ecr.aws/sam/build-python3.9:1.95.0-20230810182727
@@ -36,7 +34,7 @@ services:
         --region ${AWS_REGION} \
         --s3-bucket ${ARTIFACTS_BUCKET} \
         --no-fail-on-empty-changeset \
-        --image-repositories MusicVizLambdaFunction=${LAMBDA_ECR_REPO} \
+        --resolve-image-repos \
         --parameter-overrides ParameterKey=BUCKENT_NAME,ParameterValue=${BUCKET_NAME}
     working_dir: /app 
     volumes:
