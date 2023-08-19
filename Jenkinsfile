@@ -1,7 +1,7 @@
 pipeline {
     agent any
 
-    parameters {
+    environment {
         AWS_REGION = 'us-east-1'
         STACK_NAME = 'Music-Viz-App'
         ARTIFACTS_BUCKET = 'aws-sam-cli-managed-default-samclisourcebucket-z917b5ff2qwb'
@@ -15,7 +15,7 @@ pipeline {
     stages {
         stage('Build applications') {
             steps {
-                sh 'sudo docker compose -f ./docker-compose-build.yaml up'
+                sh 'docker compose -f ./docker-compose-build.yaml up'
             }
         }
         stage('Copy Artifacts to S3') {
