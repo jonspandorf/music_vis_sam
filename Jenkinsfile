@@ -6,12 +6,9 @@ pipeline {
         string(name: 'STACK_NAME', defaultValue: 'MusicVizApp', description: 'The Cloudformation Stack name to deploy')
         string(name: 'ARTIFACTS_BUCKET', defaultValue: 'aws-sam-cli-managed-default-samclisourcebucket-z917b5ff2qwb', description: 'S3 Bucket for SAM artifacts')
         string(name: 'BUCKET_NAME', defaultValue: 'static-website', description: 'Name of the static website hosted on S3 Bucket')
+        string(name: 'LAMBDA_ECR_REPO', defaultValue: '110828812774.dkr.ecr.us-east-1.amazonaws.com/musicvizapp', description: 'Lambda container repo')
     }
 
-    environment {
-        REPO_NAME = params.STACK_NAME.toLowerCase()
-        LAMBDA_ECR_REPO = sh(script: "aws ecr create-repository --repository-name ${REPO_NAME} --query 'repository.repositoryUri' --output text", returnStdout: true).trim()
-    }
 
     triggers {
         githubPush()
