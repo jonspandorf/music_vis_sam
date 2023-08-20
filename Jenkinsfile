@@ -16,7 +16,7 @@ pipeline {
         stage('Create ECR Repo') {
             steps {
                 sh "aws ecr create-repository --repository-name ${LAMBDA_REPO_NAME} --image-tag-mutability IMMUTABLE --image-scanning-configuration scanOnPush=true --query 'repository.repositoryUri' > repoUri.txt || true"
-                sh "aws ecr get-login --region ${AWS_REGION} | docker login --username AWS --password-stdin $(cat repoUri.txt)"
+                sh "aws ecr get-login --region $AWS_REGION | docker login --username AWS --password-stdin $(cat repoUri.txt)"
             }
         }
         stage('Build and deploy applications') {
