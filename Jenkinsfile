@@ -15,8 +15,7 @@ pipeline {
     stages {
         stage('Create ECR Repo') {
             steps {
-                sh "aws ecr create-repository --repository-name ${LAMBDA_REPO_NAME} --image-tag-mutability IMMUTABLE --image-scanning-configuration scanOnPush=true --query 'repository.repositoryUri' > repoUri.txt || true"
-
+                sh "aws ecr describe-repositories --repository-names ${LAMBDA_REPO_NAME} --query 'repositories[0].repositoryUri' --output text > repoUri.txt || aws ecr create-repository --repository-name ${LAMBDA_REPO_NAME} --image-tag-mutability IMMUTABLE --image-scanning-configuration scanOnPush=true --query 'repository.repositoryUri' > repoUri.txt"
             }
         }
         stage('Build and deploy applications') {
@@ -24,7 +23,7 @@ pipeline {
                 script {
                     def ecr_uri = sh(returnStdout: true, script: "cat repoUri.txt").trim()
                     withEnv(["LAMBDA_ECR_REPO=${ecr_uri}"]) {
-                        sh "aws ecr get-login --region $AWS_REGION | docker login --username AWS --password-stdin $LAMBDA_ECR_REPO"
+                        sh "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $LAMBDA_ECR_REPO"
                         sh 'docker compose -f ./docker-compose-build.yaml up'
                     }
                 }
