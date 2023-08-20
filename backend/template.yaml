@@ -5,10 +5,7 @@ Parameters:
   BUCKET_NAME:
     Type: String
     Description: This is the name of the static website
-  
-  IMAGE_URI:
-    Type: String 
-    Description: This it the docker image ecr repo
+
 
 Resources:
   #### Frontend React Application hosting ####
@@ -95,7 +92,6 @@ Resources:
       Timeout: 300
       Architectures:
         - x86_64
-      ImageUri: ${IMAGE_URI}
       Events:
         OnUpload:
           Type: Api
