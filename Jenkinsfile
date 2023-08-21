@@ -28,7 +28,6 @@ pipeline {
                 script {
                     def ecr_uri = sh(returnStdout: true, script: "cat repoUri.txt").trim()
                     withEnv(["LAMBDA_ECR_REPO=${ecr_uri}"]) {
-                        sh "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $LAMBDA_ECR_REPO"
                         sh 'docker compose -f ./docker-compose-build.yaml up'
                     }
                 }
