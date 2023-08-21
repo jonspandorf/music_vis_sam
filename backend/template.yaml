@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 
 Parameters:
-  BUCKET_NAME:
+  BucketPrefix:
     Type: String
     Description: This is the name of the static website
 
@@ -16,7 +16,7 @@ Resources:
         Fn::Join:
           - '-'
           -  - !Sub ${AWS::StackName}
-             - !Ref BUCKENT_NAME 
+             - !Ref BucketPrefix 
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
