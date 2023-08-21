@@ -36,6 +36,7 @@ pipeline {
         }
         stage('Copy Artifacts to S3') {
             steps {
+                sh "aws s3 rm s3://${STACK_NAME}-${BUCKET_NAME} --recursive"
                 sh "aws s3 cp ./frontend/build s3://${STACK_NAME}-${BUCKET_NAME} --recursive"
             }
         }
