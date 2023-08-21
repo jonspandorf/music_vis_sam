@@ -22,8 +22,10 @@ services:
     image: sam-builder
     command: ./deploy-script.sh
     environment:
-      - AWS_REGION=us-east-1
-      - LAMBDA_ECR_REPO=110828812774.dkr.ecr.us-east-1.amazonaws.com/testrepo
+      - AWS_REGION=${AWS_REGION}
+      - LAMBDA_ECR_REPO=${LAMBDA_ECR_REPO}
+      - STACK_NAME=${STACK_NAME}
+      - BUCKET_NAME=${BUCKET_NAME}
     working_dir: /app 
     volumes:
     - ./backend:/app
