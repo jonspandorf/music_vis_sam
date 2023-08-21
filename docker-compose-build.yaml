@@ -18,7 +18,7 @@ services:
       install_frontend:
         condition: service_completed_successfully
 
-  build_backend:
+  handle_backend:
     image: sam-builder
     command: ./deploy-script.sh
     environment:
@@ -30,14 +30,4 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock
     - ~/.aws/credentials:/root/.aws/credentials
 
-
-  deploy_backend:
-    image: sam-builder
-    command: sam deploy --stack-name ${STACK_NAME} --capabilities CAPABILITY_IAM --region ${AWS_REGION} --resolve-s3  --resolve-image-repos --template-file /app/packaged-template.yaml --no-fail-on-empty-changeset --parameter-overrides ParameterKey=BucketPrefix,ParameterValue=${BUCKET_NAME} 
-    working_dir: /app 
-    volumes:
-    - ./backend:/app
-    depends_on:
-      build_backend:
-        condition: service_completed_successfully  
 
