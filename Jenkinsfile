@@ -5,7 +5,7 @@ pipeline {
         string(name: 'AWS_REGION', defaultValue: 'us-east-1', description: 'AWS region to deploy')
         string(name: 'STACK_NAME', defaultValue: 'MusicVizApp', description: 'The Cloudformation Stack name to deploy')
         string(name: 'BUCKET_NAME', defaultValue: 'static-website', description: 'Name of the static website hosted on S3 Bucket')
-        string(name: 'LAMBDA_REPO_NAME', defaultValue: '110828812774.dkr.ecr.us-east-1.amazonaws.com/music-viz-container', description: 'Lambda container')
+        string(name: 'LAMBDA_REPO_NAME', defaultValue: 'music-viz-container', description: 'Lambda container')
     }
 
     triggers {
@@ -16,6 +16,11 @@ pipeline {
         stage('Create ECR Repo') {
             steps {
                 sh "aws ecr describe-repositories --repository-names ${LAMBDA_REPO_NAME} --query 'repositories[0].repositoryUri' --output text > repoUri.txt || aws ecr create-repository --repository-name ${LAMBDA_REPO_NAME} --image-tag-mutability IMMUTABLE --image-scanning-configuration scanOnPush=true --query 'repository.repositoryUri' > repoUri.txt"
+            }
+        }
+        stage('Build SAM container') {
+            steps {
+                sh 'docker build -t sam-builder .'
             }
         }
         stage('Build and deploy applications') {

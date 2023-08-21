@@ -19,30 +19,25 @@ services:
         condition: service_completed_successfully
 
   build_backend:
-    image: public.ecr.aws/sam/build-python3.9:1.95.0-20230810182727
-    command: sam build -u
+    image: sam-builder
+    command: ./deploy-script.sh
+    environment:
+      - AWS_REGION=us-east-1
+      - LAMBDA_ECR_REPO=110828812774.dkr.ecr.us-east-1.amazonaws.com/testrepo
     working_dir: /app 
     volumes:
     - ./backend:/app
     - /var/run/docker.sock:/var/run/docker.sock
+    - ~/.aws/credentials:/root/.aws/credentials
 
-  package_backend:
-    image: public.ecr.aws/sam/build-python3.9:1.95.0-20230810182727
-    command: sam package --region ${AWS_REGION} --output-template-file packaged-template.yaml --image-repository ${LAMBDA_ECR_REPO} 
-    working_dir: /app 
-    volumes:
-    - ./backend:/app
-    depends_on:
-      build_backend:
-        condition: service_completed_successfully
 
   deploy_backend:
-    image: public.ecr.aws/sam/build-python3.9:1.95.0-20230810182727
+    image: sam-builder
     command: sam deploy --stack-name ${STACK_NAME} --capabilities CAPABILITY_IAM --region ${AWS_REGION} --resolve-s3 --template-file /app/packaged-template.yaml --no-fail-on-empty-changeset --parameter-overrides ParameterKey=BUCKENT_NAME,ParameterValue=${BUCKET_NAME} 
     working_dir: /app 
     volumes:
     - ./backend:/app
     depends_on:
-      package_backend:
+      build_backend:
         condition: service_completed_successfully  
 
