@@ -15,9 +15,8 @@ Resources:
       BucketName: 
         Fn::Join:
           - '-'
-          - - !Ref BucketPrefix 
-            - s3-static-webapp
-             
+          -  - !Sub ${AWS::StackName}
+             - !Ref BucketPrefix 
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
