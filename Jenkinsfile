@@ -13,11 +13,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout SCM') {
-           steps {
-               checkout scm
-           }
-        }
         stage('Remove Old Contianers') {
             steps {
                 sh 'docker rm $(docker ps -a -q)'
