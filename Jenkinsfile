@@ -16,6 +16,7 @@ pipeline {
         stage('Remove Old Contianers') {
             steps {
                 sh 'docker rm $(docker ps -a -q)'
+                sh 'sudo rm -r ./frontend/build || true'
             }
         }
         stage('Create ECR Repo') {
