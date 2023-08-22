@@ -13,6 +13,11 @@ pipeline {
     }
 
     stages {
+        stage('Remove Old Contianers') {
+            steps {
+                sh 'docker ps $(docker ps -a -q)'
+            }
+        }
         stage('Create ECR Repo') {
             steps {
                 sh "aws ecr describe-repositories --repository-names ${LAMBDA_REPO_NAME} --query 'repositories[0].repositoryUri' --output text > repoUri.txt || aws ecr create-repository --repository-name ${LAMBDA_REPO_NAME} --image-tag-mutability IMMUTABLE --image-scanning-configuration scanOnPush=true --query 'repository.repositoryUri' > repoUri.txt"
@@ -28,7 +33,7 @@ pipeline {
                 script {
                     def ecr_uri = sh(returnStdout: true, script: "cat repoUri.txt").trim()
                     withEnv(["LAMBDA_ECR_REPO=${ecr_uri}"]) {
-                        sh 'docker compose -f ./docker-compose-build.yaml up'
+                        sh 'docker compose -f ./docker-compose-build.yaml up --remove-orphans'
                     }
                 }
             }
