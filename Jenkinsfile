@@ -13,6 +13,9 @@ pipeline {
     }
 
     stages {
+        stage('Checkout SCM') {
+           checkout scm
+        }
         stage('Remove Old Contianers') {
             steps {
                 sh 'docker rm $(docker ps -a -q)'
@@ -39,7 +42,7 @@ pipeline {
                 }
             }
         }
-        stage('Copy Artifacts to S3') {
+        stage('Deploy Frontend app') {
             steps {
                 sh "aws s3 rm s3://${STACK_NAME}-${BUCKET_NAME} --recursive"
                 sh "aws s3 cp ./frontend/build s3://${STACK_NAME}-${BUCKET_NAME} --recursive"
