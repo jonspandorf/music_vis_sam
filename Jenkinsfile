@@ -15,7 +15,7 @@ pipeline {
     stages {
         stage('Remove Old Contianers') {
             steps {
-                sh 'docker ps $(docker ps -a -q)'
+                sh 'docker rm $(docker ps -a -q)'
             }
         }
         stage('Create ECR Repo') {
