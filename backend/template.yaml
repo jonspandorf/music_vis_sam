@@ -5,6 +5,11 @@ Parameters:
   BucketPrefix:
     Type: String
     Description: This is the name of the static website
+  
+  DnsRecord:
+    Type: String
+    Description: The name of DNS of the application
+    Default: musicviz.earbuddy.link
 
 
 Resources:
@@ -72,19 +77,19 @@ Resources:
               QueryString: true
         Enabled: true
         Aliases:
-        - musicviz.earbuddy.link
+        - !Ref DnsRecord
         ViewerCertificate:
-         SslSupportMethod: sni-only
-         MinimumProtocolVersion: TLSv1.2_2021
-         AcmCertificateArn: !Ref MusicVizCertificate
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+          AcmCertificateArn: !Ref MusicVizCertificate
         DefaultRootObject: index.html   
 
   MusicVizCertificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
-      DomainName: musicviz.earbuddy.com
+      DomainName: !Ref DnsRecord
       DomainValidationOptions:
-        - DomainName: musicviz.earbuddy.com
+        - DomainName: !Ref DnsRecord
           HostedZoneId: Z0928443148KWAYRV1TH7
       ValidationMethod: DNS
 
@@ -93,14 +98,14 @@ Resources:
     Properties:
       HostedZoneId: Z0928443148KWAYRV1TH7
       RecordSets:
-        - Name: musicviz.earbuddy.com
+        - Name: !Ref DnsRecord
           Type: A
           AliasTarget:
             HostedZoneId: Z2FDTNDATAQYW2
             DNSName: !GetAtt
               - CloudFrontDistribution
               - DomainName
-        - Name: musicviz.earbuddy.com
+        - Name: !Ref DnsRecord
           Type: AAAA
           AliasTarget:
             HostedZoneId: Z2FDTNDATAQYW2
