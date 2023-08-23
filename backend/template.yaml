@@ -38,6 +38,8 @@ Resources:
               - 'arn:aws:s3:::${Bucket}/*'
               - Bucket: !Ref MusicVizFrontend
       Bucket: !Ref MusicVizFrontend
+
+
   #### CDN For Client side ####
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -69,7 +71,42 @@ Resources:
             ForwardedValues:
               QueryString: true
         Enabled: true
+        Aliases:
+        - musicviz.earbuddy.link
+        ViewerCertificate:
+         SslSupportMethod: sni-only
+         MinimumProtocolVersion: TLSv1.2_2021
+         AcmCertificateArn: !Ref MusicVizCertificate
         DefaultRootObject: index.html   
+
+  MusicVizCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: musicviz.earbuddy.com
+      DomainValidationOptions:
+        - DomainName: musicviz.earbuddy.com
+          HostedZoneId: Z0928443148KWAYRV1TH7
+      ValidationMethod: DNS
+
+  MusicVizDNSAliasRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: Z0928443148KWAYRV1TH7
+      RecordSets:
+        - Name: musicviz.earbuddy.com
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt
+              - CloudFrontDistribution
+              - DomainName
+        - Name: musicviz.earbuddy.com
+          Type: AAAA
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt
+              - CloudFrontDistribution
+              - DomainName
 
   CloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
