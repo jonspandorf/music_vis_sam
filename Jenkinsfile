@@ -6,6 +6,7 @@ pipeline {
         string(name: 'STACK_NAME', defaultValue: 'music-viz-app', description: 'The Cloudformation Stack name to deploy')
         string(name: 'BUCKET_NAME', defaultValue: 'static-website', description: 'Name of the static website hosted on S3 Bucket')
         string(name: 'LAMBDA_REPO_NAME', defaultValue: 'music-viz-container', description: 'Lambda container')
+        string(name: 'DNS_RECORD',defaultValue: 'musicviz.earbuddy.link', description: 'The name of app DNS')
     }
 
     triggers {

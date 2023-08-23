@@ -28,6 +28,7 @@ services:
       - LAMBDA_ECR_REPO=${LAMBDA_ECR_REPO}
       - STACK_NAME=${STACK_NAME}
       - BUCKET_NAME=${BUCKET_NAME}
+      - DNS_RECORD=${DNS_RECORD}
     working_dir: /app 
     volumes:
     - ./backend:/app

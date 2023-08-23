@@ -15,4 +15,4 @@ sam deploy \
  --resolve-image-repos \
  --template-file /app/packaged-template.yaml \
  --no-fail-on-empty-changeset \
- --parameter-overrides ParameterKey=BucketPrefix,ParameterValue=${BUCKET_NAME}
+ --parameter-overrides ParameterKey=BucketPrefix,ParameterValue=${BUCKET_NAME} ParameterKey=DnsRecord,ParameterValue=${DNS_RECORD}
