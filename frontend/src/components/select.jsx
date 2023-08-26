@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Container, Dropdown, Form, Row, Col } from "react-bootstrap"
 
 
-const SelectMenu = ({ fields, setCompare, comparedData, isHeatmap, handleCompare, graphTypes }) => {
+const SelectMenu = ({ fields, setCompare, handleComparison, comparedData, isHeatmap, handleCompare, graphTypes }) => {
 
 
     //  FIX Graph Menu select that each select upon compare is marked as check
@@ -10,7 +10,7 @@ const SelectMenu = ({ fields, setCompare, comparedData, isHeatmap, handleCompare
     //  Omit checkbox if graphtype upon compare is heatmap 
 
     //  layout of buttons on screen
-    
+
     const [ dropdownStates, setDropdownStates ] = useState({
         xOptions: false,
         yOptions: false, 
@@ -25,12 +25,11 @@ const SelectMenu = ({ fields, setCompare, comparedData, isHeatmap, handleCompare
         });
       };
     
-    const handleComparison = (e,field) => {
-        setCompare(prevState => { return {...prevState, [field]: e.target.value}})
+
+    const onChangeOfAxis = (e,type) => {
+        handleComparison(e,type)
         handleDropdownToggle(e.target.id)
     }
-
-    console.log(comparedData)
 
     return (
         <>
@@ -53,7 +52,7 @@ const SelectMenu = ({ fields, setCompare, comparedData, isHeatmap, handleCompare
                                     label={field.name}
                                     value={field.name}
                                     type="checkbox"
-                                    onChange={e => handleComparison(e,field.type)}
+                                    onChange={e => onChangeOfAxis(e,field.type)}
                                 />
 
                             ))
@@ -78,7 +77,7 @@ const SelectMenu = ({ fields, setCompare, comparedData, isHeatmap, handleCompare
                                     type="checkbox"
                                     options="yOptions"
                                     value={field.name}
-                                    onChange={e => handleComparison(e,field.type)}
+                                    onChange={e => onChangeOfAxis(e,field.type)}
                                 />
 
                             ))
@@ -98,10 +97,10 @@ const SelectMenu = ({ fields, setCompare, comparedData, isHeatmap, handleCompare
                                         key={graph.type}
                                         name={graph.type}
                                         value={graph.type}
-                                        // checked={graph.type===comparedData.graphTypes[idx].type}
+                                        checked={graph.type===comparedData.graphType.type}
                                         label={graph.type.toUpperCase()}
                                         options="grpahOptions"
-                                        onChange={e => handleComparison(e,graph.type)}
+                                        onChange={e => onChangeOfAxis(e,'graphType')}
                                     />
                                 ))
                             }

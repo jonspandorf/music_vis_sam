@@ -25,9 +25,16 @@ const MusicGraph = ({ data }) => {
 
     useEffect(()=> {},[toCompare])
 
+    const handleComparison = (e,field) => {
+      let value;
+      if (field==='graphType') value = graphTypes.find(item => item.type === e.target.value)
+      else value = e.target.value
+      setCompare(prevState => { return {...prevState, [field]: value}})
+  }
+
     const onHandleCompare = async (type) => {
       await new Promise((res,rej)=> res(setAxisAndGraph(toCompare)));
-      setGraphData(dataTypes[type])
+      await new Promise((res,rej) => res(setGraphData(dataTypes[type])));
     }
 
     const instruments = [...new Set(data.map((item) => item.instrument))];
@@ -94,9 +101,10 @@ const MusicGraph = ({ data }) => {
               setCompare={setCompare} 
               isHeatmap={toCompare.graphType.type==='heatmap'}
               handleCompare={onHandleCompare}
+              handleComparison={handleComparison}
               comparedData={toCompare}
             />
-            <Plot data={graphData.length ? graphData : heatMap} layout={layout}/>
+            <Plot data={graphData.length ? graphData : instrumentData} layout={layout}/>
           </>
           :
           <Spinner variant="light" size="lg"/>
