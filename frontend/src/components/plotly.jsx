@@ -11,7 +11,7 @@ const MusicGraph = ({ data }) => {
     const navigate = useNavigate();
 
     const vertical = ["pitch","dynamic","articulation"]
-    const graphTypes = [{ type: 'scatter', mode: 'lines'}, {type: 'histogram'}, {type:'bar'}]
+    const graphTypes = [{ type: 'scatter', mode: 'lines'}, {type: 'histogram'}, {type:'bar'}, {type: 'heatmap'}]
     const [ fields ] = useState(Object.keys(data[0]).map(item => { return { name: item, ...(vertical.includes(item) ? { type: 'y' } : { type: 'x' }) } }));
     const [ axisAndGraph, setAxisAndGraph ] = useState({x: 'offset', y: 'pitch', graphType: graphTypes[0], applyOnAllInstruments: false})
     const [ toCompare, setCompare ] = useState(axisAndGraph)
@@ -25,7 +25,13 @@ const MusicGraph = ({ data }) => {
 
     useEffect(()=> {},[toCompare])
 
+    const onHandleCompare = async (type) => {
+      await new Promise((res,rej)=> res(setAxisAndGraph(toCompare)));
+      setGraphData(dataTypes[type])
+    }
+
     const instruments = [...new Set(data.map((item) => item.instrument))];
+    const offsets = [... new Set(data.map(item => item.offset))].sort((a,b) => a - b)
     const instrumentData = instruments.map((instrument) => ({
         name: instrument,
         x: data.filter((item) => item.instrument === instrument).map((item) => item[axisAndGraph.x]),
@@ -41,7 +47,23 @@ const MusicGraph = ({ data }) => {
         ...(axisAndGraph.graphType.mode && { mode: axisAndGraph.graphType.mode })
 }]
 
-    console.log(orchestralData)
+    const matrix = instruments.map(instrument =>
+      offsets.map(offset => {
+          const matchingData = data.find(item =>
+              item.instrument === instrument && item.offset === offset
+          );
+          return matchingData ? matchingData.pitch : NaN;
+      })
+    );
+
+    const heatMap = [{
+      x: offsets,
+      y: instruments,
+      z: matrix,
+      type: 'heatmap',
+      colorscale: 'Viridis'
+    }]
+
       const layout = {
         title: 'Musical Data Plot',
         xaxis: {
@@ -51,6 +73,16 @@ const MusicGraph = ({ data }) => {
           title: axisAndGraph.y.toUpperCase(),
         },
       };
+
+      
+    const dataTypes = {
+      instrumentData,
+      orchestralData,
+      heatMap 
+    }
+
+    console.log(graphData)
+
     return (
         <Container>
         {
@@ -60,9 +92,11 @@ const MusicGraph = ({ data }) => {
               graphTypes={graphTypes} 
               fields={fields} 
               setCompare={setCompare} 
-              handleCompare={()=>setAxisAndGraph(toCompare)}
+              isHeatmap={toCompare.graphType.type==='heatmap'}
+              handleCompare={onHandleCompare}
+              comparedData={toCompare}
             />
-            <Plot data={axisAndGraph.applyOnAllInstruments ? orchestralData : instrumentData} layout={layout}/>
+            <Plot data={graphData.length ? graphData : heatMap} layout={layout}/>
           </>
           :
           <Spinner variant="light" size="lg"/>
