@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Container, Dropdown, Form, Row, Col } from "react-bootstrap"
 
 
-const SelectMenu = ({ fields, setCompare, handleComparison, comparedData, isHeatmap, handleCompare, graphTypes }) => {
+const SelectMenu = ({ fields, setCompare, handleComparison, setNextGraphKey, comparedData, isHeatmapApplicable, handleCompare, graphTypes }) => {
 
 
     //  FIX Graph Menu select that each select upon compare is marked as check
@@ -10,6 +10,16 @@ const SelectMenu = ({ fields, setCompare, handleComparison, comparedData, isHeat
     //  Omit checkbox if graphtype upon compare is heatmap 
 
     //  layout of buttons on screen
+    console.log(isHeatmapApplicable)
+
+    useEffect(()=> {    
+        if (comparedData.type === 'heatmap') setNextGraphKey(prev =>( {...prev, next: 'heatmap'}))
+        else {
+            if (comparedData.applyOnAllInstruments) setNextGraphKey(prev => ( {...prev, next: 'instrumentData' }))
+            else setNextGraphKey(prev => ( {...prev, next: 'orchestralData' }))
+        }
+        console.log(comparedData)
+    }, [comparedData])
 
     const [ dropdownStates, setDropdownStates ] = useState({
         xOptions: false,
@@ -92,24 +102,41 @@ const SelectMenu = ({ fields, setCompare, handleComparison, comparedData, isHeat
                         </Dropdown.Toggle>
                         <Dropdown.Menu>
                             {
-                                graphTypes.map((graph, idx) => (
-                                    <Form.Check 
-                                        key={graph.type}
-                                        name={graph.type}
-                                        value={graph.type}
-                                        checked={graph.type===comparedData.graphType.type}
-                                        label={graph.type.toUpperCase()}
-                                        options="grpahOptions"
-                                        onChange={e => onChangeOfAxis(e,'graphType')}
-                                    />
+                                graphTypes.map((graph) => (
+                                        // graph.type === 'heatmap' ?
+                                        //     isHeatmapApplicable ? 
+                                        //         <Form.Check 
+                                        //             key={graph.type}
+                                        //             name={graph.type}
+                                        //             value={graph.type}
+                                        //             checked={graph.type===comparedData.graphType.type}
+                                        //             label={graph.type.toUpperCase()}
+                                        //             options="grpahOptions"
+                                        //             onChange={e => onChangeOfAxis(e,'graphType')}
+                                        //         />
+                                        //         :
+                                        //         <></>
+                                        // :
+                                            <Form.Check 
+                                                key={graph.type}
+                                                name={graph.type}
+                                                value={graph.type}
+                                                checked={graph.type===comparedData.graphType.type}
+                                                label={graph.type.toUpperCase()}
+                                                options="grpahOptions"
+                                                onChange={e => onChangeOfAxis(e,'graphType')}
+                                            />
+                                    
                                 ))
                             }
                         </Dropdown.Menu>
                     </Dropdown>
                 </Col>
-                {!isHeatmap && <Col xs={4}>
-                    <Form.Check type="checkbox" label="Apply on all instruments?" onChange={(e)=>{setCompare(prevState => { return { ...prevState, applyOnAllInstruments: e.target.checked }})} }/>
-                </Col>}
+                {!comparedData.graphType.type === 'heatmap' && 
+                    <Col xs={4}>
+                        <Form.Check type="checkbox" label="Apply on all instruments?" onChange={(e)=>{setCompare(prevState => { return { ...prevState, applyOnAllInstruments: e.target.checked }})} }/>
+                    </Col>
+                }
                 <Col xs={2}>
                      <Button color="success" onClick={handleCompare}>Compare</Button>
                 </Col>
