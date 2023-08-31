@@ -26,13 +26,17 @@ const MusicGraph = ({ data }) => {
     },[])
 
     const { x , y } = axisAndGraph
-    useEffect(()=> {},[toCompare])
+    useEffect(()=> {
+      if (toCompare.graphType.type==='heatmap') return setHeatmapApplicable(false)
+      const search = { 
+        x: toCompare.x,
+        y: toCompare.y
+      }
+      setHeatmapApplicable(heatmaps.some(item => item.x === search.x && item.y === search.y));
+    },[toCompare.graphType, isHeatmapApplicable])
 
-    useEffect(() => {
-      const { x, y } = toCompare
-      console.log(x,y, heatmaps.includes({ x, y }))
-      setHeatmapApplicable(heatmaps.includes({ x, y }));
-    },[toCompare.graphType])
+    useEffect(()=>{},[viewedGraphKey,isHeatmapApplicable,viewedGraphKey])
+
 
     const handleComparison = (e,field) => {
       let value;
@@ -73,7 +77,6 @@ const MusicGraph = ({ data }) => {
       })
     );
 
-    console.log(viewedGraphKey)
     const heatmap = [{
       x: offsets,
       y: instruments,
