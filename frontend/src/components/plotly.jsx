@@ -10,12 +10,14 @@ const MusicGraph = ({ data }) => {
   
     const navigate = useNavigate();
 
+    const heatmaps = [{x: 'offset', y: 'pitch'}]
     const vertical = ["pitch","dynamic","articulation"]
-    const graphTypes = [{ type: 'scatter', mode: 'lines'}, {type: 'histogram'}, {type:'bar'}]
+    const graphTypes = [{ type: 'scatter', mode: 'lines'}, {type: 'histogram'}, {type:'bar'}, {type: 'heatmap'}]
     const [ fields ] = useState(Object.keys(data[0]).map(item => { return { name: item, ...(vertical.includes(item) ? { type: 'y' } : { type: 'x' }) } }));
-    const [ axisAndGraph, setAxisAndGraph ] = useState({x: 'offset', y: 'pitch', graphType: graphTypes[0], applyOnAllInstruments: false})
+    const [ axisAndGraph, setAxisAndGraph ] = useState({x: 'offset', y: 'pitch', graphType: graphTypes[0], applyOnAllInstruments: false })
     const [ toCompare, setCompare ] = useState(axisAndGraph)
-    const [ graphData, setGraphData ] = useState([])
+    const [ viewedGraphKey, setGraphKey ] = useState({ current: 'instrumentData', next: ''})
+    const [ isHeatmapApplicable, setHeatmapApplicable ] = useState(true)
 
     useEffect(()=> {
       let _mounted = true 
@@ -23,9 +25,34 @@ const MusicGraph = ({ data }) => {
       return () => _mounted = false;
     },[])
 
-    useEffect(()=> {},[toCompare])
+    const { x , y } = axisAndGraph
+    useEffect(()=> {
+      if (toCompare.graphType.type==='heatmap') return setHeatmapApplicable(false)
+      const search = { 
+        x: toCompare.x,
+        y: toCompare.y
+      }
+      setHeatmapApplicable(heatmaps.some(item => item.x === search.x && item.y === search.y));
+    },[toCompare.graphType, isHeatmapApplicable])
+
+    useEffect(()=>{},[viewedGraphKey,isHeatmapApplicable,viewedGraphKey])
+
+
+    const handleComparison = (e,field) => {
+      let value;
+      if (field==='graphType') value = graphTypes.find(item => item.type === e.target.value)
+      else value = e.target.value
+      setCompare(prevState => { return {...prevState, [field]: value}})
+  }
+
+    const onHandleCompare = async (type,key) => {
+      await new Promise((res,rej)=> res(setAxisAndGraph(toCompare)));
+      await new Promise((res,rej) => res(setGraphKey(prev =>( {current: prev.next, next: '' }))));
+    }
 
     const instruments = [...new Set(data.map((item) => item.instrument))];
+    const offsets = [... new Set(data.map(item => item.offset))].sort((a,b) => a - b)
+
     const instrumentData = instruments.map((instrument) => ({
         name: instrument,
         x: data.filter((item) => item.instrument === instrument).map((item) => item[axisAndGraph.x]),
@@ -39,9 +66,25 @@ const MusicGraph = ({ data }) => {
       y: data.map(item => item[axisAndGraph.y]),
       type: axisAndGraph.graphType.type,
         ...(axisAndGraph.graphType.mode && { mode: axisAndGraph.graphType.mode })
-}]
+    }]
 
-    console.log(orchestralData)
+    const matrix = instruments.map(instrument =>
+      offsets.map(offset => {
+          const matchingData = data.find(item =>
+              item.instrument === instrument && item.offset === offset
+          );
+          return matchingData ? matchingData.pitch : NaN;
+      })
+    );
+
+    const heatmap = [{
+      x: offsets,
+      y: instruments,
+      z: matrix,
+      type: 'heatmap',
+      colorscale: 'Viridis'
+    }]
+
       const layout = {
         title: 'Musical Data Plot',
         xaxis: {
@@ -51,6 +94,14 @@ const MusicGraph = ({ data }) => {
           title: axisAndGraph.y.toUpperCase(),
         },
       };
+
+      
+    const graphs = {
+      instrumentData,
+      orchestralData,
+      heatmap 
+    }
+
     return (
         <Container>
         {
@@ -60,9 +111,16 @@ const MusicGraph = ({ data }) => {
               graphTypes={graphTypes} 
               fields={fields} 
               setCompare={setCompare} 
-              handleCompare={()=>setAxisAndGraph(toCompare)}
+              isHeatmapApplicable={isHeatmapApplicable}
+              handleCompare={onHandleCompare}
+              handleComparison={handleComparison}
+              comparedData={toCompare}
+              setNextGraphKey={setGraphKey}
             />
-            <Plot data={axisAndGraph.applyOnAllInstruments ? orchestralData : instrumentData} layout={layout}/>
+            <Plot 
+              data={graphs[viewedGraphKey.current]}
+              layout={layout}
+            />
           </>
           :
           <Spinner variant="light" size="lg"/>
