@@ -25,7 +25,6 @@ const MusicGraph = ({ data }) => {
       return () => _mounted = false;
     },[])
 
-    const { x , y } = axisAndGraph
     useEffect(()=> {
       if (toCompare.graphType.type==='heatmap') return setHeatmapApplicable(false)
       const search = { 

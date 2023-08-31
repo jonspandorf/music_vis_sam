@@ -7,6 +7,7 @@ pipeline {
         string(name: 'BUCKET_NAME', defaultValue: 'static-website', description: 'Name of the static website hosted on S3 Bucket')
         string(name: 'LAMBDA_REPO_NAME', defaultValue: 'music-viz-container', description: 'Lambda container')
         string(name: 'DNS_RECORD',defaultValue: 'musicviz.earbuddy.link', description: 'The name of app DNS')
+        string(name: 'CF_DIST_IT',defaultValue: 'E336TKSXT505CE', description: 'name of the distribution id')
     }
 
     triggers {
@@ -35,7 +36,7 @@ pipeline {
                 script {
                     def ecr_uri = sh(returnStdout: true, script: "cat repoUri.txt").trim()
                     withEnv(["LAMBDA_ECR_REPO=${ecr_uri}"]) {
-                        sh 'docker compose -f ./docker-compose-build.yaml up --remove-orphans'
+                        sh 'docker compose -p music_viz_${BUILD_NUMBER} -f ./docker-compose-build.yaml up --remove-orphans'
                     }
                 }
             }
@@ -44,6 +45,7 @@ pipeline {
             steps {
                 sh "aws s3 rm s3://${STACK_NAME}-${BUCKET_NAME} --recursive"
                 sh "aws s3 cp ./frontend/build s3://${STACK_NAME}-${BUCKET_NAME} --recursive"
+                sh "aws createfront create-invalidation --distribution-id ${CF_DIST_ID} --path /*"
             }
         }
     }
