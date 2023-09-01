@@ -3,6 +3,7 @@ import Plot from 'react-plotly.js';
 import SelectMenu from './select';
 import { Container, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { handleCustomData, handleInstrumentalData, handleMatrixData } from '../lib/utilities';
 
 
 
@@ -13,11 +14,19 @@ const MusicGraph = ({ data }) => {
     const heatmaps = [{x: 'offset', y: 'pitch'}]
     const vertical = ["pitch","dynamic","articulation"]
     const graphTypes = [{ type: 'scatter', mode: 'lines'}, {type: 'histogram'}, {type:'bar'}, {type: 'heatmap'}]
+
+    const graphs = {
+      instrumentData: () => handleInstrumentalData(data, axisAndGraph),
+      customData: () => handleCustomData(data, axisAndGraph),
+      heatmap: () => handleMatrixData(data)
+    }
+
     const [ fields ] = useState(Object.keys(data[0]).map(item => { return { name: item, ...(vertical.includes(item) ? { type: 'y' } : { type: 'x' }) } }));
     const [ axisAndGraph, setAxisAndGraph ] = useState({x: 'offset', y: 'pitch', graphType: graphTypes[0], applyOnAllInstruments: false })
     const [ toCompare, setCompare ] = useState(axisAndGraph)
     const [ viewedGraphKey, setGraphKey ] = useState({ current: 'instrumentData', next: ''})
     const [ isHeatmapApplicable, setHeatmapApplicable ] = useState(true)
+    const [ graphData,setGraph ] = useState(graphs[viewedGraphKey.current])
 
     useEffect(()=> {
       let _mounted = true 
@@ -34,7 +43,9 @@ const MusicGraph = ({ data }) => {
       setHeatmapApplicable(heatmaps.some(item => item.x === search.x && item.y === search.y));
     },[toCompare.graphType, isHeatmapApplicable])
 
-    useEffect(()=>{},[viewedGraphKey,isHeatmapApplicable,viewedGraphKey])
+    useEffect(()=>{
+      setGraph(graphs[viewedGraphKey.current])
+    },[viewedGraphKey,isHeatmapApplicable,viewedGraphKey])
 
 
     const handleComparison = (e,field) => {
@@ -49,40 +60,6 @@ const MusicGraph = ({ data }) => {
       await new Promise((res,rej) => res(setGraphKey(prev =>( {current: prev.next, next: '' }))));
     }
 
-    const instruments = [...new Set(data.map((item) => item.instrument))];
-    const offsets = [... new Set(data.map(item => item.offset))].sort((a,b) => a - b)
-
-    const instrumentData = instruments.map((instrument) => ({
-        name: instrument,
-        x: data.filter((item) => item.instrument === instrument).map((item) => item[axisAndGraph.x]),
-        y: data.filter((item) => item.instrument === instrument).map((item) => item[axisAndGraph.y]),
-        type: axisAndGraph.graphType.type,
-        ...(axisAndGraph.graphType.mode && { mode: axisAndGraph.graphType.mode })
-      }));
-
-    const orchestralData = [{
-      x: data.map(item => item[axisAndGraph.x]),
-      y: data.map(item => item[axisAndGraph.y]),
-      type: axisAndGraph.graphType.type,
-        ...(axisAndGraph.graphType.mode && { mode: axisAndGraph.graphType.mode })
-    }]
-
-    const matrix = instruments.map(instrument =>
-      offsets.map(offset => {
-          const matchingData = data.find(item =>
-              item.instrument === instrument && item.offset === offset
-          );
-          return matchingData ? matchingData.pitch : NaN;
-      })
-    );
-
-    const heatmap = [{
-      x: offsets,
-      y: instruments,
-      z: matrix,
-      type: 'heatmap',
-      colorscale: 'Viridis'
-    }]
 
       const layout = {
         title: 'Musical Data Plot',
@@ -94,12 +71,6 @@ const MusicGraph = ({ data }) => {
         },
       };
 
-      
-    const graphs = {
-      instrumentData,
-      orchestralData,
-      heatmap 
-    }
 
     return (
         <Container>
@@ -117,7 +88,7 @@ const MusicGraph = ({ data }) => {
               setNextGraphKey={setGraphKey}
             />
             <Plot 
-              data={graphs[viewedGraphKey.current]}
+              data={graphData}
               layout={layout}
             />
           </>

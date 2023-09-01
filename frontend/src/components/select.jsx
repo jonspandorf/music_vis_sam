@@ -11,7 +11,7 @@ const SelectMenu = ({ fields, setCompare, handleComparison, setNextGraphKey, com
         }
         else {
             if (comparedData.applyOnAllInstruments) setNextGraphKey(prev => ( {...prev, next: 'instrumentData' }))
-            else setNextGraphKey(prev => ( {...prev, next: 'orchestralData' }))
+            else setNextGraphKey(prev => ( {...prev, next: 'customData' }))
         }
     }, [comparedData])
 
