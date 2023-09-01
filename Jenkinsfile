@@ -7,7 +7,7 @@ pipeline {
         string(name: 'BUCKET_NAME', defaultValue: 'static-website', description: 'Name of the static website hosted on S3 Bucket')
         string(name: 'LAMBDA_REPO_NAME', defaultValue: 'music-viz-container', description: 'Lambda container')
         string(name: 'DNS_RECORD',defaultValue: 'musicviz.earbuddy.link', description: 'The name of app DNS')
-        string(name: 'CF_DIST_IT',defaultValue: 'E336TKSXT505CE', description: 'name of the distribution id')
+        string(name: 'CF_DIST_IT',defaultValue: 'E20GSLGHX9MRXR', description: 'name of the distribution id')
     }
 
     triggers {
