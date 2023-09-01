@@ -45,7 +45,14 @@ pipeline {
             steps {
                 sh "aws s3 rm s3://${STACK_NAME}-${BUCKET_NAME} --recursive"
                 sh "aws s3 cp ./frontend/build s3://${STACK_NAME}-${BUCKET_NAME} --recursive"
-                sh "aws createfront create-invalidation --distribution-id ${CF_DIST_ID} --path /*"
+            }
+        }
+        stage('Invalidate cloudfront cache') {
+            when {
+                expression { return env.CF_DIST_IT }
+            }
+            steps {
+                sh "aws cloudfront create-invalidation --distribution-id ${CF_DIST_ID} --path /*"
             }
         }
     }
