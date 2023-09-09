@@ -1,29 +1,35 @@
-import { AuthenticationDetails, CognitoUser } from "amazon-cognito-identity-js";
-import userpool from '../lib/userpool'
+import { createContext, useContext, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import userpool from "../lib/userpool";
 
-export const authenticate = (email,password) => {
-    return new Promise((res,rej)=> {
-        const user = new CognitoUser({
-            Username: email,
-            Pool: userpool
-        });
+const AuthContext = createContext()
 
-        const authDetails = new AuthenticationDetails({
-            Username: email,
-            Password: password
-        })
-        user.authenticateUser(authDetails, {
-            onSuccess: (result) => {
-                res(result)
-            },
-            onFailure: (err) => {
-                rej(err)
-            }
-        })
-    })
+export const AuthProvider = ({ children }) => {
+    const [ user, setUser ] = useState(null)
+
+    const navigate = useNavigate()
+
+    const loginUser = (cognitoLogin) => {
+        const data = cognitoLogin()
+        setUser(data)
+        navigate('/main')
+    }
+
+    const logoutUser = (cognitoLogout) => {
+        cognitoLogout()
+        setUser(null)
+        navigate('/login', { replace: true })
+    }
+
+    const authValues = useMemo(() => ({
+        user,
+        loginUser,
+        logoutUser
+    }), [user])
+
+    return <AuthContext.Provider value={authValues}>{children}</AuthContext.Provider>
 }
 
-export const logout = () => {
-    const user = userpool.getCurrentUser()
-    user.signOut();
+export const useAuth = () => {
+    return useContext(AuthContext)
 }
