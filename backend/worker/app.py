@@ -5,7 +5,7 @@ from fractions import Fraction
 import base64
 import os
 import csv
-
+import math 
 # import requests
 
 
@@ -37,7 +37,7 @@ def lambda_handler(event, context):
             instrument = part.getInstrument().instrumentName
             print(f'extracting data for {instrument}')
             for note in part.flat.notes:
-                pitch_frequency = pitch.Pitch(note.nameWithOctave).frequency if hasattr(note, 'nameWithOctave') else None
+                pitch_frequency = pitch.Pitch(note.nameWithOctave).frequency if hasattr(note, 'nameWithOctave') else math.nan
                 acc_offset = frac_to_decimal(note.offset)
                 notes.append({
                     'pitch': pitch_frequency,

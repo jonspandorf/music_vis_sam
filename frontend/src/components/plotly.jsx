@@ -28,6 +28,8 @@ const MusicGraph = ({ data }) => {
     const [ isHeatmapApplicable, setHeatmapApplicable ] = useState(true)
     const [ graphData,setGraph ] = useState(graphs[viewedGraphKey.current])
 
+    console.log(graphData)
+
     useEffect(()=> {
       let _mounted = true 
       if (!data.length) return navigate('/')
@@ -73,7 +75,7 @@ const MusicGraph = ({ data }) => {
 
 
     return (
-        <Container>
+        <Container style={{ margin: 'auto', textAlign: 'center' }}>
         {
           data.length ? 
           <>
