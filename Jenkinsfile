@@ -49,7 +49,7 @@ pipeline {
         }
         stage('Invalidate cloudfront cache') {
             steps {
-                sh "aws cloudfront create-invalidation --distribution-id ${CF_DIST_ID} --path /*"
+                sh "aws cloudfront create-invalidation --distribution-id $CF_DIST_IT --path /*"
             }
         }
     }

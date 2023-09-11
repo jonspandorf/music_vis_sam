@@ -7,7 +7,7 @@ export const handleInstrumentalData = (data, axisAndGraph) => {
     return instruments.map((instrument) => ({
         name: instrument,
         x: data.filter((item) => item.instrument === instrument).map((item) => item[axisAndGraph.x]),
-        y: data.filter((item) => item.instrument === instrument).map((item) => item[axisAndGraph.y]),
+        y: data.filter((item) => item.instrument === instrument).map((item) => item[axisAndGraph.y] ? item[axisAndGraph.y] : NaN),
         type: axisAndGraph.graphType.type,
         ...(axisAndGraph.graphType.mode && { mode: axisAndGraph.graphType.mode })
       }));

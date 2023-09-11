@@ -37,7 +37,7 @@ const SelectMenu = ({ fields, setCompare, handleComparison, setNextGraphKey, com
 
     return (
         <>
-            <Container>
+            <Container style={{ margin: 'auto', textAlign: 'center' }} className="mt-3">
             <Row>
                 <Col xs={2}>
                     <Dropdown show={dropdownStates.xOptions} onToggle={() => handleDropdownToggle('xOptions')}>
