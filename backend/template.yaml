@@ -141,6 +141,11 @@ Resources:
             Path: /api/upload
             Method: put
             RestApiId: !Ref UploadScoreApi
+            RequestParameters:
+            - method.request.querystring.startMeasure:
+              Required: true
+            - method.request.querystring.endMeasure:
+              Required: true 
         Options:
           Type: Api
           Properties:

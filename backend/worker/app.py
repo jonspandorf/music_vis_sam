@@ -11,7 +11,6 @@ import csv
 
 def lambda_handler(event, context):
 
-
     def frac_to_decimal(fraction_str):
         if not Fraction(fraction_str):
             return fraction_str
@@ -21,22 +20,28 @@ def lambda_handler(event, context):
         return decimal
 
 
-    def produce_df_data(score_path):
+    def write_to_tmp_file(data):
+        with open('/tmp/myfile.mxl', 'wb') as f:
+            f.write(base64.b64decode(data))
+            f.close()
+
+
+    def produce_df_data(score_path,start_measure=1,end_measure=30):
     # Load the score and extract the notes
         print('about to produce data')
-        parser = converter.Converter()
-        # score = parser.parseData(score_path)
         score = converter.parse(score_path)
+        score = score.toSoundingPitch()
         print('created a score object\n')
         notes = []
-        for part in score.parts.measures(1,30):
+        for part in score.parts.measures(start_measure,end_measure):
             instrument = part.getInstrument().instrumentName
             print(f'extracting data for {instrument}')
             for note in part.flat.notes:
-                p = pitch.Pitch(note.nameWithOctave).frequency if hasattr(note, 'nameWithOctave') else None
+                pitch_frequency = pitch.Pitch(note.nameWithOctave).frequency if hasattr(note, 'nameWithOctave') else None
                 acc_offset = frac_to_decimal(note.offset)
                 notes.append({
-                    'pitch': p,
+                    'pitch': pitch_frequency,
+                    'note': note.nameWithOctave if hasattr(note, 'nameWithOctave') else None,
                     'duration': note.duration.quarterLength,
                     'measure_number': str(note.measureNumber),
                     'offset': acc_offset,
@@ -48,54 +53,49 @@ def lambda_handler(event, context):
         
         print('produced all notes!!!\n\n\nAbout to produce dataframe')
         df = pd.DataFrame(notes)
-
-        print(df.head())
-        loc = print(df.iloc[0].values)
-        print(f'succesfully finished df. {loc}')
         
-        # return { 'message': 'data produced successfully!', 'data': output }
         os.remove('/tmp/myfile.mxl')
         return df
         
-    with open('/tmp/myfile.mxl', 'wb') as f:
-        f.write(base64.b64decode(event['body']))
-        f.close()
 
     def generate_output(df):
 
-        file_name = 'SessionFile_{}.{}'.format("myfile", "csv")
-        tmp_file = f'/tmp/{file_name}'
+        try:
+            file_name = 'SessionFile_{}.{}'.format("score_output", "csv")
+            tmp_file = f'/tmp/{file_name}'
 
-        df.to_csv(path_or_buf=tmp_file, index=False)
-        fieldnames = str(list(df.columns))
-        csvfile = open(tmp_file, 'r')
-        reader = csv.DictReader(csvfile)
-        outJson = json.dumps( [ row for row in reader ] )
+            df.to_csv(path_or_buf=tmp_file, index=False)
+            csvfile = open(tmp_file, 'r')
+            reader = csv.DictReader(csvfile)
+            outJson = json.dumps( [ row for row in reader ] )
 
-        csvfile.close()
-        os.remove(f'/tmp/{file_name}')
+            csvfile.close()
+            os.remove(f'/tmp/{file_name}')
 
-        return outJson
-    # file_data = base64.b64decode(event['body']) # Assuming the binary file data is present in 'body'
-    message = ""
-    statusCode = 200
-
-
+            return outJson
+        except:
+            raise Exception("Cannot produce data properly")
+            
     try:
-
-        df = produce_df_data('/tmp/myfile.mxl')
+        df_jsoned={}
+        message = ""
+        statusCode=0
+        start_measure=int(event['queryStringParameters']['startMeasure'])
+        end_measure=int(event['queryStringParameters']['endMeasure'])
+        if end_measure - start_measure > 30:
+            statusCode = 400
+            raise Exception("Service is currently limited for 30 measures")
+        write_to_tmp_file(event['body'])
+        df = produce_df_data('/tmp/myfile.mxl',start_measure,end_measure)
         df_jsoned = generate_output(df)
         if df_jsoned:
             message = "data produced successfully"
-        else:
-            message = "problem producing data"
-            statusCode = 400
+            statusCode=200
     except Exception as e: 
         print(f"!!! ERROR !!! {str(e)}")
-        statusCode = 500 
         message = str(e)
     return {
-        "statusCode": statusCode,
+        "statusCode": statusCode if statusCode else 500,
         "headers": {
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Allow-Origin': '*',
@@ -104,7 +104,6 @@ def lambda_handler(event, context):
         "body": json.dumps({
             "message": message,
             "data": df_jsoned
-            # "location": ip.text.replace("\n", "")
         }),
     }
 
