@@ -48,9 +48,6 @@ pipeline {
             }
         }
         stage('Invalidate cloudfront cache') {
-            when {
-                expression { return env.CF_DIST_IT }
-            }
             steps {
                 sh "aws cloudfront create-invalidation --distribution-id ${CF_DIST_ID} --path /*"
             }
