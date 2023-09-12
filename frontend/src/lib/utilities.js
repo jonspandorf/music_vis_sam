@@ -6,7 +6,7 @@ export const handleInstrumentalData = (data, axisAndGraph) => {
 
     return instruments.map((instrument) => ({
         name: instrument,
-        x: data.filter((item) => item.instrument === instrument).map((item) => item[axisAndGraph.x]),
+        x: data.filter((item) => item.instrument === instrument).map((item) => item[axisAndGraph.y] ? item[axisAndGraph.x] : NaN),
         y: data.filter((item) => item.instrument === instrument).map((item) => item[axisAndGraph.y] ? item[axisAndGraph.y] : NaN),
         type: axisAndGraph.graphType.type,
         ...(axisAndGraph.graphType.mode && { mode: axisAndGraph.graphType.mode })
@@ -27,7 +27,7 @@ export const handleCustomData = (data,axisAndGraph) => {
 export const handleMatrixData = (data) => {
 
     const instruments = [...new Set(data.map((item) => item.instrument))].reverse();
-    const offsets = [... new Set(data.map(item => item.offset))].sort((a,b) => a - b)
+    const offsets = [...new Set(data.map(item => item.offset))].sort((a,b) => a - b)
 
     const matrix = instruments.map(instrument =>
         offsets.map(offset => {

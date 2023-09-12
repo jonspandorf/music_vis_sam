@@ -9,12 +9,13 @@ function App() {
 
 
   const [ data, setData ] = useState(null)
+  const [ pieceTitle, setPiece ] = useState("")
 
   return (
         <Router>
           <Routes>
-            <Route path='/' element={<UploadFile setData={setData} />} />
-            <Route path='/graph' element={<MusicGraph data={data} />} />
+            <Route path='/' element={<UploadFile setData={setData} setPiece={setPiece} pieceTitle={pieceTitle} />} />
+            <Route path='/graph' element={<MusicGraph data={data} pieceTitle={pieceTitle}/>} />
           </Routes>
         </Router>
 

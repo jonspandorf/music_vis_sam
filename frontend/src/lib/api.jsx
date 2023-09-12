@@ -6,7 +6,6 @@ const url = process.env.REACT_APP_API || 'http://localhost:3000/'
 
 export const onPublishScore = async (data, measures) => {
 
-    console.log(new URLSearchParams(measures).toString())
     const res = await axios.put(`${url}api/upload?${new URLSearchParams(measures).toString()}`, data)
     return res.data
 
