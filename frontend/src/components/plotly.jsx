@@ -7,7 +7,7 @@ import { handleCustomData, handleInstrumentalData, handleMatrixData } from '../l
 
 
 
-const MusicGraph = ({ data }) => {
+const MusicGraph = ({ data, pieceTitle }) => {
   
     const navigate = useNavigate();
 
@@ -27,8 +27,6 @@ const MusicGraph = ({ data }) => {
     const [ viewedGraphKey, setGraphKey ] = useState({ current: 'instrumentData', next: ''})
     const [ isHeatmapApplicable, setHeatmapApplicable ] = useState(true)
     const [ graphData,setGraph ] = useState(graphs[viewedGraphKey.current])
-
-    console.log(graphData)
 
     useEffect(()=> {
       let _mounted = true 
@@ -64,7 +62,7 @@ const MusicGraph = ({ data }) => {
 
 
       const layout = {
-        title: 'Musical Data Plot',
+        title: pieceTitle,
         xaxis: {
           title: axisAndGraph.x.toUpperCase(),
         },

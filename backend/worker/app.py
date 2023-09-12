@@ -44,7 +44,7 @@ def lambda_handler(event, context):
                     'note': note.nameWithOctave if hasattr(note, 'nameWithOctave') else None,
                     'duration': note.duration.quarterLength,
                     'measure_number': str(note.measureNumber),
-                    'offset': acc_offset,
+                    'offset': acc_offset if pitch_frequency else math.nan,
                     'time_signature': note.getContextByClass('TimeSignature').numerator,
                     'dynamic': note.dynamic.level if hasattr(note, 'dynamic') else None,
                     'articulation': note.articulations[0].name if note.articulations else None,
