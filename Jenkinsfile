@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Remove Old Contianers') {
             steps {
-                sh 'docker rm $(docker ps -a -q)'
+                sh 'docker rm $(docker ps -a -q) || true'
                 sh 'sudo rm -r ./frontend/build || true'
             }
         }
