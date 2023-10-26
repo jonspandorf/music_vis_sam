@@ -4,6 +4,8 @@ import { Form, Button, Spinner, Container, Row, Col, Alert } from 'react-bootstr
 import 'bootstrap/dist/css/bootstrap.css';
 import { onPublishScore } from '../lib/api';
 import { useNavigate } from 'react-router-dom'
+import PopupDialog from './dialog';
+import { getScoreResults } from '../lib/ws';
 
 
 const UploadFile = ({ setData, pieceTitle, setPiece }) => {
@@ -13,7 +15,10 @@ const UploadFile = ({ setData, pieceTitle, setPiece }) => {
     const [ measures, setMeasures ] = useState({ startMeasure: 1, endMeasure: 30 }) 
     const [ isSubmitting, setSubmitting ] = useState(false)
     const [ formErrors, setErrors ] = useState({ startMeasure: null, endMeasure: null, fileType: null })
+    const [ filename, setFilename ] = useState("")
+    const [ dataIsReady, setDataReady ] = useState(false)
     const [ errMsg, setErrMsg ] = useState("")
+    const [ serverMessage, setServerMessage ] = useState("")
     const [ isButtonDisabled, setButtonDisabled ] = useState(false)
 
     useEffect(() => {
@@ -38,13 +43,25 @@ const UploadFile = ({ setData, pieceTitle, setPiece }) => {
         
     }
 
+    const waitForResults = () => {
+        const data = getScoreResults(filename)
+        setData(data)
+        setDataReady(true)
+    }
+
     const handleSubmission = async (e) => {
         e.preventDefault()
         setSubmitting(true)
         const res = await onPublishScore(file, measures)
-        setData(JSON.parse(res.data))
-        setSubmitting(false)
+        setFilename(res.data.filename)
+        await new Promise((res) => setTimeout(res,20))
+        waitForResults()
+    }
+
+    const continueToData = () => {
+        setDataReady(false)
         return navigate('/graph')
+
     }
 
     const handleAlertClose = () => {
@@ -127,6 +144,17 @@ const UploadFile = ({ setData, pieceTitle, setPiece }) => {
             }
         </Button>
         </Form>
+        { 
+            dataIsReady && 
+            <PopupDialog
+                showPopup={dataIsReady}
+                closePopup={() => dataIsReady(false)}
+                popupTitle={"RoadMap Ready"}
+                popupBody={"Your score has been processed!"}
+                continuteProcess={continueToData}
+                btnText={"Continue"}
+            />
+        }
         </Container>
     )
 }
