@@ -2,10 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Button, Spinner, Container, Row, Col, Alert } from 'react-bootstrap'
 import 'bootstrap/dist/css/bootstrap.css';
-import { onPublishScore } from '../lib/api';
+import { getScoreGraphData, onPublishScore } from '../lib/api';
 import { useNavigate } from 'react-router-dom'
 import PopupDialog from './dialog';
-import { getScoreResults } from '../lib/ws';
+import { getScoreResults, useScoreChecker } from '../lib/ws';
 
 
 const UploadFile = ({ setData, pieceTitle, setPiece }) => {
@@ -20,6 +20,8 @@ const UploadFile = ({ setData, pieceTitle, setPiece }) => {
     const [ errMsg, setErrMsg ] = useState("")
     const [ serverMessage, setServerMessage ] = useState("")
     const [ isButtonDisabled, setButtonDisabled ] = useState(false)
+    const [ readyToConnect, setReadyToConnect ] = useState(false)
+    const isReady = useScoreChecker(filename, readyToConnect)
 
     useEffect(() => {
         if (isSubmitting || errMsg.length > 0 || !file.size || !pieceTitle) setButtonDisabled(true)
@@ -27,6 +29,13 @@ const UploadFile = ({ setData, pieceTitle, setPiece }) => {
         
     }, [isSubmitting, errMsg, file.size, pieceTitle])
 
+
+    useEffect(() => {
+        if (isReady) {
+            setSubmitting(false)
+            setDataReady(true)
+        }
+    }, [isReady, isSubmitting])
 
 
     const handleFile = (e) => {
@@ -38,28 +47,24 @@ const UploadFile = ({ setData, pieceTitle, setPiece }) => {
             setFile([])
         } else {
             setFile(e.target.files[0])
+            setFilename(e.target.files[0].name.split('.')[0])
             setErrMsg("")
         }
         
     }
 
-    const waitForResults = () => {
-        const data = getScoreResults(filename)
-        setData(data)
-        setDataReady(true)
-    }
-
     const handleSubmission = async (e) => {
         e.preventDefault()
         setSubmitting(true)
-        const res = await onPublishScore(file, measures)
-        setFilename(res.data.filename)
+        const res = await onPublishScore(file, filename, measures)
+        setFilename(res.message)
         await new Promise((res) => setTimeout(res,20))
-        waitForResults()
+        setReadyToConnect(true)
     }
 
-    const continueToData = () => {
-        setDataReady(false)
+    const continueToData = async () => {
+        const scoreData = await getScoreGraphData(filename)
+        await new Promise(res => res(setData(JSON.parse(scoreData.data))))
         return navigate('/graph')
 
     }
@@ -133,7 +138,7 @@ const UploadFile = ({ setData, pieceTitle, setPiece }) => {
             {
                 isSubmitting ? 
                 <>
-                    Uploading
+                    { !readyToConnect ? "Uploading" : "Processing..." }
                     <Spinner animation="border" variant="light" />
                 </>
                 :
@@ -145,13 +150,13 @@ const UploadFile = ({ setData, pieceTitle, setPiece }) => {
         </Button>
         </Form>
         { 
-            dataIsReady && 
+            isReady && 
             <PopupDialog
                 showPopup={dataIsReady}
                 closePopup={() => dataIsReady(false)}
                 popupTitle={"RoadMap Ready"}
                 popupBody={"Your score has been processed!"}
-                continuteProcess={continueToData}
+                continueProcess={continueToData}
                 btnText={"Continue"}
             />
         }

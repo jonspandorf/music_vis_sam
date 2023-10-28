@@ -1,49 +1,48 @@
-import { useState } from 'react'
-import WebSocket from 'ws'
+import { useEffect, useState } from 'react'
+import useWebSocket from 'react-use-websocket';
 
-export const getScoreResults = (filename) => {
+export const useScoreChecker = (filename, readyToConnect) => {
 
-    const [ scoreData, setScoreData ] = useState([]) 
+  const WS_URL = process.env.REACT_APP_WS_URL
 
-    let timeoutId
-    const ws = new WebSocket('/api/ws/')
+  const { sendJsonMessage, lastMessage, readyState } = useWebSocket(readyToConnect ? WS_URL : null);
+  const [ isReady, setIsReady ] = useState(false)
+  const [ resend, setResend ] = useState(true)
 
-    const checkIfDataIsReady = (filename) => {
-        const msg = { action: 'onCheck', filename }
-        ws.send(JSON.stringify(msg))
-    }
+  const msgToWs = {
+    action: 'onCheck',
+    filename
+  }
 
-    ws.onopen = () => {
-        checkIfDataIsReady(filename)
-    }
+  useEffect(() => {
+    if (readyState === 1 && resend) {
+      sendJsonMessage(msgToWs)
+      setResend(false)
+    } 
+  }, [readyState, resend])
 
-    
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-    
-        if (399 < data.status < 500) {
-          const delayInSeconds = 20; // Initial delay
-          timeoutId = setTimeout(checkIfDataIsReady, delayInSeconds * 1000);
-        } else {
-          console.log('Data is ready:', data);
-          setScoreData(data)
-          socket.close();
-        }
-      };
-    
-      ws.onclose = (event) => {
-        if (event.wasClean) {
-          console.log('WebSocket closed cleanly, code=' + event.code + ', reason=' + event.reason);
-          clearTimeout(timeoutId)
-          return scoreData
-        } else {
-          console.error('WebSocket connection interrupted.');
-        }
-      };
+  useEffect(() => {
+    (
+      async () =>{
+        if (readyToConnect && lastMessage) {
+          const res = JSON.parse(lastMessage.data)
 
-      ws.onerror = (error) => {
-        console.error("ws error: ", error)
-        clearTimeout(timeoutId)
+          if (res.msg === "Your file is ready!") {
+            await new Promise((res) => (res(setIsReady(true))))
+            setResend(false)
+          } else {
+            await new Promise(res => setTimeout(res, 20000))
+            setResend(true)
+          }
+
       }
+
+    }
+    )()
+  }, [lastMessage])
+
+  return isReady
 }
+
+
 
