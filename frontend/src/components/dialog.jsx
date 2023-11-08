@@ -1,6 +1,6 @@
 import { Button, Modal } from 'react-bootstrap'
 
-const PopupDialog = ({ showPopup, closePopup, popupTitle, popupBody, continuteProcess, btnText }) => {
+const PopupDialog = ({ showPopup, closePopup, popupTitle, popupBody, continueProcess, btnText }) => {
 
     return (
         <Modal show={showPopup} onHide={closePopup}>
@@ -9,7 +9,7 @@ const PopupDialog = ({ showPopup, closePopup, popupTitle, popupBody, continutePr
             </Modal.Header>
             <Modal.Body>{popupBody}</Modal.Body>
             <Modal.Footer>
-                <Button variant='secondary' onClick={continuteProcess}>
+                <Button variant='secondary' onClick={continueProcess}>
                     {btnText}
                 </Button>
             </Modal.Footer>

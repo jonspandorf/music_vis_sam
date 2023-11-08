@@ -13,22 +13,19 @@ services:
     command: npm run build
     working_dir: /app
     environment:
-    - REACT_APP_API=/ 
+    - REACT_APP_API=/api 
+    - REACT_AOO_WS_URL="wss://${DOMAIN_NAME}/socket"
     volumes: 
     - ./frontend:/app
     depends_on:
       install_frontend:
         condition: service_completed_successfully
 
-  handle_backend:
-    image: sam-builder
-    command: ./deploy-script.sh
+  deploy_infra_backend_stack:
+    image: serverless
     environment:
       - AWS_REGION=${AWS_REGION}
-      - LAMBDA_ECR_REPO=${LAMBDA_ECR_REPO}
-      - STACK_NAME=${STACK_NAME}
-      - BUCKET_NAME=${BUCKET_NAME}
-      - DNS_RECORD=${DNS_RECORD}
+      - API_GW_STAGE=${API_GW_STAGE}
     working_dir: /app 
     volumes:
     - ./backend:/app

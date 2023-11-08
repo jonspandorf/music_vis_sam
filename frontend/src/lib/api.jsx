@@ -2,11 +2,11 @@ import axios from 'axios'
 
 // No URL Attached for CF
 
-const url = process.env.REACT_APP_API || 'http://localhost:3000'
+const url = process.env.REACT_APP_API || '/api'
 
 export const onPublishScore = async (data, filename, measures) => {
 
-    const res = await axios.put(`${url}/invoke?filename=${filename}&${new URLSearchParams(measures).toString()}`, data)
+    const res = await axios.put(`${url}/upload?filename=${filename}&${new URLSearchParams(measures).toString()}`, data)
     return res.data
 
 }

@@ -7,10 +7,16 @@ import base64
 import os
 import csv
 import math 
+from botocore.exceptions import ClientError
+
 # import requests
 
-BUCKET_NAME = os.environ("BUCKET_NAME")
-QUEUE_URL = os.environ("QUEUE_URL")
+BUCKET_NAME = os.getenv("BUCKET_NAME")
+QUEUE_URL = os.getenv("QUEUE_URL")
+s3 = boto3.client('s3')
+sqs = boto3.client('sqs')
+
+
 
 def frac_to_decimal(fraction_str):
     if not Fraction(fraction_str):
@@ -22,24 +28,19 @@ def frac_to_decimal(fraction_str):
 
 
 def get_user_score(filename):
+    try:
+        filepath = f'/tmp/{filename}'
+        s3.download_file(BUCKET_NAME,filename,filepath)
+    except ClientError as e:
+        print(f"Error!!! {e}")
+        raise Exception(f"Error occured! {e}")
+
+def post_data_to_bucket(filepath,filename):
     s3 = boto3.client('s3')
-    res = s3.get_objcet(Bucket=BUCKET_NAME,Key=filename)
-    return res['Body'].read()
-
-def post_data_to_bucket(data,filename):
-    s3 = boto3.client('s3')
-    s3.delete_object(Bucket=BUCKET_NAME, Key=filename)
-    s3.upload_file(Filename=data, Bucket=BUCKET_NAME, Key=filename)
+    s3.upload_file(Filename=filepath, Bucket=BUCKET_NAME, Key=f"{filename}")
 
 
-def write_to_tmp_file(filename,data):
-    with open(f'/tmp/{filename}.mxl', 'wb') as f:
-        f.write(base64.b64decode(data))
-        f.close()
-
-
-
-def produce_df_data(converter,score_path,start_measure=1,end_measure=30):
+def produce_df_data(score_path,start_measure=1,end_measure=30):
 # Load the score and extract the notes
     print('about to produce data')
     score = converter.parse(score_path)
@@ -67,25 +68,15 @@ def produce_df_data(converter,score_path,start_measure=1,end_measure=30):
     print('produced all notes!!!\n\n\nAbout to produce dataframe')
     df = pd.DataFrame(notes)
     
-    os.remove('/tmp/myfile.mxl')
     return df
     
 
-def generate_output(df,filename):
+def generate_output_to_file(df,filename):
 
     try:
-        filename = 'SessionFile_{}.{}'.format(filename, "csv")
-        tmp_file = f'/tmp/{filename}'
-
+        tmp_file = f'/tmp/{filename}.csv'
         df.to_csv(path_or_buf=tmp_file, index=False)
-        csvfile = open(tmp_file, 'r')
-        reader = csv.DictReader(csvfile)
-        jsoned = json.dumps( [ row for row in reader ] )
-
-        csvfile.close()
-        os.remove(f'/tmp/{filename}')
-
-        return jsoned
+        return tmp_file
     except:
         raise Exception("Cannot produce data properly")
 
@@ -96,30 +87,41 @@ def lambda_handler(event, context):
 
     try:
         api_message = ""
-        statusCode=0
+        statusCode = 0
 
         for message in event['Records']:
             handled_messages.append(message['receiptHandle'])
+            receipt = message['receiptHandle']
 
             user_data = json.loads(message['body'])
+            print(f"Handeling message {receipt}")
+
             filename = user_data['filename']
+            print(f"filename is {filename}")
             df_jsoned={}
+
 
             start_measure=int(user_data['start_measure'])
             end_measure=int(user_data['end_measure'])
 
-            data = get_user_score(filename)
-            write_to_tmp_file(filename,data)
-            df = produce_df_data(f'/tmp/{filename}.mxl',start_measure,end_measure)
-            df_jsoned = generate_output(df)
-            post_data_to_bucket(df_jsoned,filename)
+            print(f"from measure {start_measure} to measure {end_measure}")
+
+            print("getting score from s3")
+            get_user_score(filename)
+            print("\nProcessing...\n")
+            df = produce_df_data(f'/tmp/{filename}',start_measure,end_measure)
+            print("writing output to local file")
+            s3.delete_object(Bucket=BUCKET_NAME, Key=f"{filename}")
+            filename = filename.split('.')[0]
+            filepath = generate_output_to_file(df,filename)
+            print(f"uploading {filepath} to s3")
+            post_data_to_bucket(filepath,f"{filename}_processed.csv")
             if df_jsoned:
                 api_message = "data produced successfully"
                 statusCode=200
     except Exception as e: 
         api_message = f"!!! ERROR !!! {str(e)}"
     finally:
-        sqs = boto3.client('sqs')
         for receipt in handled_messages:
             sqs.delete_message(QueueUrl=QUEUE_URL, ReceiptHandle=receipt)
 

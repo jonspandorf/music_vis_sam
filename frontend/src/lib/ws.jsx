@@ -3,11 +3,13 @@ import useWebSocket from 'react-use-websocket';
 
 export const useScoreChecker = (filename, readyToConnect) => {
 
-  const WS_URL = process.env.REACT_APP_WS_URL
+  const WS_URL = process.env.REACT_APP_WS_URL 
+
 
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(readyToConnect ? WS_URL : null);
   const [ isReady, setIsReady ] = useState(false)
   const [ resend, setResend ] = useState(true)
+  
 
   const msgToWs = {
     action: 'onCheck',

@@ -1,0 +1,124 @@
+Resources:
+  UploaderExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: UploaderExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+      - PolicyName: MusicVizUploaderPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource:
+              - 'Fn::Join':
+                  - ':'
+                  - - 'arn:aws:logs'
+                    - Ref: 'AWS::Region'
+                    - Ref: 'AWS::AccountId'
+                    - 'log-group:/aws/lambda/*:*:*'
+            - Effect: Allow
+              Action: sqs:SendMessage
+              Resource: !GetAtt WorkerBroker.Arn
+            - Effect: Allow
+              Action: s3:PutObject
+              Resource: 'arn:aws:s3:::${self:provider.environment.SCORES_BUCKET}/*'
+
+
+  CheckerDownloaderExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName:  ${self:service}-${self:provider.stage}-CheckerExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: ${self:service}-${self:provider.stage}-CheckerExecutionPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource:
+                - 'Fn::Join':
+                    - ':'
+                    - - 'arn:aws:logs'
+                      - Ref: 'AWS::Region'
+                      - Ref: 'AWS::AccountId'
+                      - 'log-group:/aws/lambda/*:*:*'
+            - Effect: Allow
+              Action: execute-api:ManageConnections
+              Resource: arn:aws:execute-api:*:*:**/@connections/*
+            - Effect: Allow
+              Action: 
+                - "s3:ListBucket"
+                - "s3:GetObject"
+                - "s3:DeleteObject"
+              Resource: arn:aws:s3:::${self:provider.environment.SCORES_BUCKET}/*
+
+  WorkerExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: WorkerExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+      - PolicyName: WorkerExecutionPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource:
+                - 'Fn::Join':
+                    - ':'
+                    - - 'arn:aws:logs'
+                      - Ref: 'AWS::Region'
+                      - Ref: 'AWS::AccountId'
+                      - 'log-group:/aws/lambda/*:*:*'
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:DeleteObject
+              Resource: arn:aws:s3:::${self:provider.environment.SCORES_BUCKET}/*
+            - Effect: Allow
+              Action: 
+                - sqs:DeleteMessage
+                - sqs:ReceiveMessage
+                - sqs:GetQueueAttributes
+              Resource: !GetAtt WorkerBroker.Arn
+
+  UploaderInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt UploadHandlerLambdaFunction.Arn
+      Principal: lambda.amazonaws.com
+      SourceArn: !GetAtt WorkerBroker.Arn
+      

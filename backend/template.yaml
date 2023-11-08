@@ -13,6 +13,26 @@ Parameters:
 
 
 Resources:
+  ScoresBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: socres-bucket-music-vis
+
+  WorkerBroker:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: music-vis-worker-broker
+      RedrivePolicy:
+        maxReceiveCount: 5
+        deadLetterTargetArn: !GetAtt BrokerDLQ.Arn
+      VisibilityTimeout: 90
+
+  BrokerDLQ:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: worker-dlq
+
+
   #### Frontend React Application hosting ####
   MusicVizFrontend:
     Type: AWS::S3::Bucket
@@ -120,7 +140,21 @@ Resources:
         Comment: CloudFront access identity     
 
   #### Backend lambda worker  #####
-  MusicVizLambdaFunction:
+
+  CheckerFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: main.lambda_handler
+      Runtime: python3.9
+      CodeUri: ./checker
+      Role: !GetAtt CheckerExecutionRole.Arn
+      Environment:
+        Variables:
+          WEBSOCKET_API: !Sub https://${CheckerWebSocket}.execute-api.${AWS::Region}.amazonaws.com/dev/
+          S3_BUCKET_NAME: !Ref ScoresBucket
+          QUEUE_URL: !GetAtt WorkerBroker.QueueUrl
+  
+  WorkerFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
       Dockerfile: Dockerfile
@@ -129,7 +163,7 @@ Resources:
     Properties:
       FunctionName: MusicVizWorker
       PackageType: Image
-      MemorySize: 2048
+      MemorySize: 256
       Policies: AmazonDynamoDBFullAccess
       Timeout: 300
       Architectures:
@@ -153,6 +187,70 @@ Resources:
             Method: OPTIONS
             RestApiId: !Ref UploadScoreApi
 
+ CheckerWebSocket:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: CheckerWebSockerApi
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: $request.body.action
+  CheckerIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: CheckerWebSocket
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Checker.Arn}/invocations
+      IntegrationMethod: POST
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: CheckerWebSocket
+      RouteKey: $connect
+      OperationName: ConnectRoute
+      Target: !Join
+        - /
+        - - integrations 
+          - !Ref CheckerIntegration        
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: CheckerWebSocket
+      RouteKey: $disconnect
+      OperationName: DisconnectRoute
+      Target: !Join
+        - /
+        - - integrations 
+          - !Ref CheckerIntegration
+  OnCheckRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: CheckerWebSocket
+      RouteKey: onCheck
+      OperationName: ProcessRoute
+      Target: !Join
+        - /
+        - - integrations 
+          - !Ref CheckerIntegration
+  Deployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+    - OnCheckRoute
+    Properties:
+      ApiId: !Ref CheckerWebSocket
+      # StageName: !Ref Stage
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: dev
+      Description: Version 'dev'
+      DeploymentId: !Ref Deployment
+      ApiId: !Ref CheckerWebSocket
+
+  
 
   ###### Api endpoint ########
   UploadScoreApi:
