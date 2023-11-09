@@ -1,0 +1,15 @@
+Resources:
+  WorkerBroker:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: music-vis-worker-broker
+      RedrivePolicy:
+        maxReceiveCount: 5
+        deadLetterTargetArn: !GetAtt BrokerDLQ.Arn
+      VisibilityTimeout: 300
+
+  BrokerDLQ:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: worker-dlq
+

@@ -1,0 +1,106 @@
+service: ${env:STACK_NAME}
+provider:
+  name: aws
+  runtime: python3.10 
+  stage: ${env:API_GW_STAGE}
+  region: ${env:AWS_REGION}
+  apiGateway:
+    minimumCompressionSize: 1024
+    binaryMediaTypes: 
+      - '*/*'
+  environment:
+    SCORES_BUCKET: music-viz-scores-bucket
+    DOMAIN_NAME: ${env:DOMAIN_NAME}
+  ecr:
+    images:
+      music21_worker_container:
+        path: ./backend/worker
+      musicviz_score_uploader:
+        path: ./backend/uploader
+      musicviz_score_checker:
+        path: ./backend/checker
+      musicviz_data_downlowder:
+        path: ./backend/downloader
+package:
+  individually: true
+  exclude:
+    - node_modules/**
+    - venv/**
+
+resources:
+- ${file(./infra/buckets.yaml)}
+- ${file(./infra/cloudfront.yaml)}
+- ${file(./infra/route53.yaml)}
+- ${file(./infra/sqs.yaml)}
+- ${file(./infra/roles.yaml)}
+       
+functions:
+  uploadHandler: 
+    image: 
+      name: musicviz_score_uploader
+    name: UploadHandlertemp
+    role: UploaderExecutionRole
+    environment:
+      QUEUE_URL:
+        Fn::GetAtt:
+          - WorkerBroker
+          - QueueUrl
+      BUCKET_NAME: ${self:provider.environment.SCORES_BUCKET}
+    events:
+      - http:
+          method: put
+          path: /api/upload
+          cors: true
+
+  workerHandler: 
+    image:
+      name: music21_worker_container
+    environment:
+      BUCKET_NAME: ${self:provider.environment.SCORES_BUCKET}
+      QUEUE_URL:
+        Fn::GetAtt:
+          - WorkerBroker
+          - QueueUrl
+    role: WorkerExecutionRole
+    timeout: 300
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - WorkerBroker
+              - Arn
+
+  checkerHandler: 
+    image:
+      name: musicviz_score_checker
+    environment:
+      BUCKET_NAME: ${self:provider.environment.SCORES_BUCKET}
+      WEBSOCKET_API:
+        Fn::Join:
+          - ''
+          - - 'https://'
+            - Ref: WebsocketsApi
+            - '.execute-api.'
+            - Ref: AWS::Region
+            - '.amazonaws.com/'
+            - ${self:provider.stage}
+    role: CheckerDownloaderExecutionRole
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+      - websocket:
+          route: onCheck
+
+  downloadHandler:
+    image: 
+      name: musicviz_data_downlowder
+    environment:
+      BUCKET_NAME: ${self:provider.environment.SCORES_BUCKET}
+    role: CheckerDownloaderExecutionRole
+    events:
+    - http:
+        method: get
+        path: /api/score
+        cors: true
