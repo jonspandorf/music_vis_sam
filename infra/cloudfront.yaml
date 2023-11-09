@@ -12,7 +12,7 @@ Resources:
           var request = event.request;
           
           if (request.uri.includes('/socket')) {
-            request.uri = '/${self:provider.environment.stage}';
+            request.uri = '/prod';
           }
           
           return request;

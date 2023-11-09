@@ -1,8 +1,8 @@
 {
   "service": {
-    "service": "test-sync-app",
+    "service": "music-viz-stack",
     "serviceObject": {
-      "name": "test-sync-app"
+      "name": "music-viz-stack"
     },
     "provider": {
       "name": "aws",
@@ -17,7 +17,7 @@
       },
       "environment": {
         "SCORES_BUCKET": "music-viz-scores-bucket",
-        "DOMAIN_NAME": "tester.earbuddy.link"
+        "DOMAIN_NAME": "musicviz.earbuddy.link"
       },
       "ecr": {
         "images": {
@@ -118,80 +118,35 @@
           "WorkerHandlerLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/test-sync-app-prod-workerHandler"
+              "LogGroupName": "/aws/lambda/music-viz-stack-prod-workerHandler"
             }
           },
           "CheckerHandlerLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/test-sync-app-prod-checkerHandler"
+              "LogGroupName": "/aws/lambda/music-viz-stack-prod-checkerHandler"
             }
           },
           "DownloadHandlerLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/test-sync-app-prod-downloadHandler"
-            }
-          },
-          "WorkerHandlerLambdaFunction": {
-            "Type": "AWS::Lambda::Function",
-            "Properties": {
-              "Code": {
-                "ImageUri": "110828812774.dkr.ecr.us-east-1.amazonaws.com/serverless-test-sync-app-prod@sha256:23608a30417b8e45d347647c5de04ecdd18db2b064534173001e1acd18b60676"
-              },
-              "PackageType": "Image",
-              "FunctionName": "test-sync-app-prod-workerHandler",
-              "MemorySize": 1024,
-              "Timeout": 300,
-              "Environment": {
-                "Variables": {
-                  "SCORES_BUCKET": "music-viz-scores-bucket",
-                  "DOMAIN_NAME": "tester.earbuddy.link",
-                  "BUCKET_NAME": "music-viz-scores-bucket",
-                  "QUEUE_URL": {
-                    "Fn::GetAtt": [
-                      "WorkerBroker",
-                      "QueueUrl"
-                    ]
-                  }
-                }
-              },
-              "Role": {
-                "Fn::GetAtt": [
-                  "WorkerExecutionRole",
-                  "Arn"
-                ]
-              }
-            },
-            "DependsOn": [
-              "WorkerHandlerLogGroup",
-              "WorkerExecutionRole"
-            ]
-          },
-          "WorkerHandlerLambdaVersionFen3kMKB9uR2zVDgfyvDaveTlr5kPPu43WcY7eg6Pc": {
-            "Type": "AWS::Lambda::Version",
-            "DeletionPolicy": "Retain",
-            "Properties": {
-              "FunctionName": {
-                "Ref": "WorkerHandlerLambdaFunction"
-              },
-              "CodeSha256": "23608a30417b8e45d347647c5de04ecdd18db2b064534173001e1acd18b60676"
+              "LogGroupName": "/aws/lambda/music-viz-stack-prod-downloadHandler"
             }
           },
           "CheckerHandlerLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
               "Code": {
-                "ImageUri": "110828812774.dkr.ecr.us-east-1.amazonaws.com/serverless-test-sync-app-prod@sha256:5f35a8446851b3f8015a926158f07c94fbe4eb68f8483de18d3b21a5ad281770"
+                "ImageUri": "110828812774.dkr.ecr.us-east-1.amazonaws.com/serverless-music-viz-stack-prod@sha256:5f35a8446851b3f8015a926158f07c94fbe4eb68f8483de18d3b21a5ad281770"
               },
               "PackageType": "Image",
-              "FunctionName": "test-sync-app-prod-checkerHandler",
+              "FunctionName": "music-viz-stack-prod-checkerHandler",
               "MemorySize": 1024,
               "Timeout": 6,
               "Environment": {
                 "Variables": {
                   "SCORES_BUCKET": "music-viz-scores-bucket",
-                  "DOMAIN_NAME": "tester.earbuddy.link",
+                  "DOMAIN_NAME": "musicviz.earbuddy.link",
                   "BUCKET_NAME": "music-viz-scores-bucket",
                   "WEBSOCKET_API": {
                     "Fn::Join": [
@@ -224,7 +179,7 @@
               "CheckerDownloaderExecutionRole"
             ]
           },
-          "CheckerHandlerLambdaVersionHSgu4JtEsErQrM3k9IemraCRmetKIGynOaXrtkb3Ak8": {
+          "CheckerHandlerLambdaVersionCI7PEcRS8p5VULs8rCSisQs9vC2HTxUaHKkuULk": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
@@ -234,50 +189,11 @@
               "CodeSha256": "5f35a8446851b3f8015a926158f07c94fbe4eb68f8483de18d3b21a5ad281770"
             }
           },
-          "DownloadHandlerLambdaFunction": {
-            "Type": "AWS::Lambda::Function",
-            "Properties": {
-              "Code": {
-                "ImageUri": "110828812774.dkr.ecr.us-east-1.amazonaws.com/serverless-test-sync-app-prod@sha256:6606d67384d1d041b767548ece67c36338657a68ce781c2ef8a25111b9594127"
-              },
-              "PackageType": "Image",
-              "FunctionName": "test-sync-app-prod-downloadHandler",
-              "MemorySize": 1024,
-              "Timeout": 6,
-              "Environment": {
-                "Variables": {
-                  "SCORES_BUCKET": "music-viz-scores-bucket",
-                  "DOMAIN_NAME": "tester.earbuddy.link",
-                  "BUCKET_NAME": "music-viz-scores-bucket"
-                }
-              },
-              "Role": {
-                "Fn::GetAtt": [
-                  "CheckerDownloaderExecutionRole",
-                  "Arn"
-                ]
-              }
-            },
-            "DependsOn": [
-              "DownloadHandlerLogGroup",
-              "CheckerDownloaderExecutionRole"
-            ]
-          },
-          "DownloadHandlerLambdaVersionOGJUb19GNKoU1VQuEe7I8H6a9y2cBrd5vayXS22anCE": {
-            "Type": "AWS::Lambda::Version",
-            "DeletionPolicy": "Retain",
-            "Properties": {
-              "FunctionName": {
-                "Ref": "DownloadHandlerLambdaFunction"
-              },
-              "CodeSha256": "6606d67384d1d041b767548ece67c36338657a68ce781c2ef8a25111b9594127"
-            }
-          },
           "UploadHandlerLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
               "Code": {
-                "ImageUri": "110828812774.dkr.ecr.us-east-1.amazonaws.com/serverless-test-sync-app-prod@sha256:d6cbcb385e55a3728513f42ecd6e054942e6a0ab98d708d333da0fb43ffadbd3"
+                "ImageUri": "110828812774.dkr.ecr.us-east-1.amazonaws.com/serverless-music-viz-stack-prod@sha256:d6cbcb385e55a3728513f42ecd6e054942e6a0ab98d708d333da0fb43ffadbd3"
               },
               "PackageType": "Image",
               "FunctionName": "UploadHandlertemp",
@@ -286,7 +202,7 @@
               "Environment": {
                 "Variables": {
                   "SCORES_BUCKET": "music-viz-scores-bucket",
-                  "DOMAIN_NAME": "tester.earbuddy.link",
+                  "DOMAIN_NAME": "musicviz.earbuddy.link",
                   "QUEUE_URL": {
                     "Fn::GetAtt": [
                       "WorkerBroker",
@@ -308,7 +224,7 @@
               "UploaderExecutionRole"
             ]
           },
-          "UploadHandlerLambdaVersionhOkMU9imeqH7Wf0VbI2CkRPDUSFrGb6vD2tcHAhAb0": {
+          "UploadHandlerLambdaVersionsU3UgfsRxaDzP389tUW9QwO1w5tqsqA1wxDpIRR8Z4": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
@@ -318,10 +234,94 @@
               "CodeSha256": "d6cbcb385e55a3728513f42ecd6e054942e6a0ab98d708d333da0fb43ffadbd3"
             }
           },
+          "DownloadHandlerLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "ImageUri": "110828812774.dkr.ecr.us-east-1.amazonaws.com/serverless-music-viz-stack-prod@sha256:6606d67384d1d041b767548ece67c36338657a68ce781c2ef8a25111b9594127"
+              },
+              "PackageType": "Image",
+              "FunctionName": "music-viz-stack-prod-downloadHandler",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "SCORES_BUCKET": "music-viz-scores-bucket",
+                  "DOMAIN_NAME": "musicviz.earbuddy.link",
+                  "BUCKET_NAME": "music-viz-scores-bucket"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "CheckerDownloaderExecutionRole",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "DownloadHandlerLogGroup",
+              "CheckerDownloaderExecutionRole"
+            ]
+          },
+          "DownloadHandlerLambdaVersionDi0efvUFSXt4SJNvojXhmirMLVwlU4lZGiS1PlbUw": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "DownloadHandlerLambdaFunction"
+              },
+              "CodeSha256": "6606d67384d1d041b767548ece67c36338657a68ce781c2ef8a25111b9594127"
+            }
+          },
+          "WorkerHandlerLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "ImageUri": "110828812774.dkr.ecr.us-east-1.amazonaws.com/serverless-music-viz-stack-prod@sha256:23608a30417b8e45d347647c5de04ecdd18db2b064534173001e1acd18b60676"
+              },
+              "PackageType": "Image",
+              "FunctionName": "music-viz-stack-prod-workerHandler",
+              "MemorySize": 1024,
+              "Timeout": 300,
+              "Environment": {
+                "Variables": {
+                  "SCORES_BUCKET": "music-viz-scores-bucket",
+                  "DOMAIN_NAME": "musicviz.earbuddy.link",
+                  "BUCKET_NAME": "music-viz-scores-bucket",
+                  "QUEUE_URL": {
+                    "Fn::GetAtt": [
+                      "WorkerBroker",
+                      "QueueUrl"
+                    ]
+                  }
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "WorkerExecutionRole",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "WorkerHandlerLogGroup",
+              "WorkerExecutionRole"
+            ]
+          },
+          "WorkerHandlerLambdaVersionosfUVp5vaW9DpoBK0bUlJvTmrurVzysmWb2cf78": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "WorkerHandlerLambdaFunction"
+              },
+              "CodeSha256": "23608a30417b8e45d347647c5de04ecdd18db2b064534173001e1acd18b60676"
+            }
+          },
           "ApiGatewayRestApi": {
             "Type": "AWS::ApiGateway::RestApi",
             "Properties": {
-              "Name": "prod-test-sync-app",
+              "Name": "prod-music-viz-stack",
               "BinaryMediaTypes": [
                 "*/*"
               ],
@@ -555,7 +555,7 @@
               "DownloadHandlerLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1699473722898": {
+          "ApiGatewayDeployment1699475489921": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -647,7 +647,7 @@
           "WebsocketsApi": {
             "Type": "AWS::ApiGatewayV2::Api",
             "Properties": {
-              "Name": "prod-test-sync-app-websockets",
+              "Name": "prod-music-viz-stack-websockets",
               "RouteSelectionExpression": "$request.body.action",
               "Description": "Serverless Websockets",
               "ProtocolType": "WEBSOCKET"
@@ -774,11 +774,11 @@
               "StageName": "prod",
               "Description": "Serverless Websockets",
               "DeploymentId": {
-                "Ref": "WebsocketsDeploymentKQ8Wahl3229mnn13KoI5Mze2xS6p21EvYyivI8hsQ"
+                "Ref": "WebsocketsDeploymentVNcxCDiant9TnntSY2iQV8m0clFxUGmuY1WD0xpFU"
               }
             }
           },
-          "WebsocketsDeploymentKQ8Wahl3229mnn13KoI5Mze2xS6p21EvYyivI8hsQ": {
+          "WebsocketsDeploymentVNcxCDiant9TnntSY2iQV8m0clFxUGmuY1WD0xpFU": {
             "Type": "AWS::ApiGatewayV2::Deployment",
             "DependsOn": [
               "SconnectWebsocketsRoute",
@@ -996,7 +996,7 @@
                 ],
                 "Enabled": true,
                 "Aliases": [
-                  "tester.earbuddy.link"
+                  "musicviz.earbuddy.link"
                 ],
                 "ViewerCertificate": {
                   "SslSupportMethod": "sni-only",
@@ -1026,7 +1026,7 @@
               "HostedZoneId": "Z0928443148KWAYRV1TH7",
               "RecordSets": [
                 {
-                  "Name": "tester.earbuddy.link",
+                  "Name": "musicviz.earbuddy.link",
                   "Type": "A",
                   "AliasTarget": {
                     "HostedZoneId": "Z2FDTNDATAQYW2",
@@ -1039,7 +1039,7 @@
                   }
                 },
                 {
-                  "Name": "tester.earbuddy.link",
+                  "Name": "musicviz.earbuddy.link",
                   "Type": "AAAA",
                   "AliasTarget": {
                     "HostedZoneId": "Z2FDTNDATAQYW2",
@@ -1057,10 +1057,10 @@
           "MusicVizCertificate": {
             "Type": "AWS::CertificateManager::Certificate",
             "Properties": {
-              "DomainName": "tester.earbuddy.link",
+              "DomainName": "musicviz.earbuddy.link",
               "DomainValidationOptions": [
                 {
-                  "DomainName": "tester.earbuddy.link",
+                  "DomainName": "musicviz.earbuddy.link",
                   "HostedZoneId": "Z0928443148KWAYRV1TH7"
                 }
               ],
@@ -1160,7 +1160,7 @@
           "CheckerDownloaderExecutionRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
-              "RoleName": "test-sync-app-prod-CheckerExecutionRole",
+              "RoleName": "music-viz-stack-prod-CheckerExecutionRole",
               "AssumeRolePolicyDocument": {
                 "Version": "2012-10-17",
                 "Statement": [
@@ -1175,7 +1175,7 @@
               },
               "Policies": [
                 {
-                  "PolicyName": "test-sync-app-prod-CheckerExecutionPolicy",
+                  "PolicyName": "music-viz-stack-prod-CheckerExecutionPolicy",
                   "PolicyDocument": {
                     "Version": "2012-10-17",
                     "Statement": [
@@ -1326,43 +1326,43 @@
               "Ref": "ServerlessDeploymentBucket"
             },
             "Export": {
-              "Name": "sls-test-sync-app-prod-ServerlessDeploymentBucketName"
-            }
-          },
-          "WorkerHandlerLambdaFunctionQualifiedArn": {
-            "Description": "Current Lambda function version",
-            "Value": {
-              "Ref": "WorkerHandlerLambdaVersionFen3kMKB9uR2zVDgfyvDaveTlr5kPPu43WcY7eg6Pc"
-            },
-            "Export": {
-              "Name": "sls-test-sync-app-prod-WorkerHandlerLambdaFunctionQualifiedArn"
+              "Name": "sls-music-viz-stack-prod-ServerlessDeploymentBucketName"
             }
           },
           "CheckerHandlerLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "CheckerHandlerLambdaVersionHSgu4JtEsErQrM3k9IemraCRmetKIGynOaXrtkb3Ak8"
+              "Ref": "CheckerHandlerLambdaVersionCI7PEcRS8p5VULs8rCSisQs9vC2HTxUaHKkuULk"
             },
             "Export": {
-              "Name": "sls-test-sync-app-prod-CheckerHandlerLambdaFunctionQualifiedArn"
-            }
-          },
-          "DownloadHandlerLambdaFunctionQualifiedArn": {
-            "Description": "Current Lambda function version",
-            "Value": {
-              "Ref": "DownloadHandlerLambdaVersionOGJUb19GNKoU1VQuEe7I8H6a9y2cBrd5vayXS22anCE"
-            },
-            "Export": {
-              "Name": "sls-test-sync-app-prod-DownloadHandlerLambdaFunctionQualifiedArn"
+              "Name": "sls-music-viz-stack-prod-CheckerHandlerLambdaFunctionQualifiedArn"
             }
           },
           "UploadHandlerLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "UploadHandlerLambdaVersionhOkMU9imeqH7Wf0VbI2CkRPDUSFrGb6vD2tcHAhAb0"
+              "Ref": "UploadHandlerLambdaVersionsU3UgfsRxaDzP389tUW9QwO1w5tqsqA1wxDpIRR8Z4"
             },
             "Export": {
-              "Name": "sls-test-sync-app-prod-UploadHandlerLambdaFunctionQualifiedArn"
+              "Name": "sls-music-viz-stack-prod-UploadHandlerLambdaFunctionQualifiedArn"
+            }
+          },
+          "DownloadHandlerLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "DownloadHandlerLambdaVersionDi0efvUFSXt4SJNvojXhmirMLVwlU4lZGiS1PlbUw"
+            },
+            "Export": {
+              "Name": "sls-music-viz-stack-prod-DownloadHandlerLambdaFunctionQualifiedArn"
+            }
+          },
+          "WorkerHandlerLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "WorkerHandlerLambdaVersionosfUVp5vaW9DpoBK0bUlJvTmrurVzysmWb2cf78"
+            },
+            "Export": {
+              "Name": "sls-music-viz-stack-prod-WorkerHandlerLambdaFunctionQualifiedArn"
             }
           },
           "ServiceEndpoint": {
@@ -1388,7 +1388,7 @@
               ]
             },
             "Export": {
-              "Name": "sls-test-sync-app-prod-ServiceEndpoint"
+              "Name": "sls-music-viz-stack-prod-ServiceEndpoint"
             }
           },
           "ServiceEndpointWebsocket": {
@@ -1414,7 +1414,7 @@
               ]
             },
             "Export": {
-              "Name": "sls-test-sync-app-prod-ServiceEndpointWebsocket"
+              "Name": "sls-music-viz-stack-prod-ServiceEndpointWebsocket"
             }
           }
         }
@@ -1547,7 +1547,7 @@
         "memory": 1024,
         "timeout": 6,
         "vpc": {},
-        "versionLogicalId": "UploadHandlerLambdaVersionhOkMU9imeqH7Wf0VbI2CkRPDUSFrGb6vD2tcHAhAb0"
+        "versionLogicalId": "UploadHandlerLambdaVersionsU3UgfsRxaDzP389tUW9QwO1w5tqsqA1wxDpIRR8Z4"
       },
       "workerHandler": {
         "image": {
@@ -1573,11 +1573,11 @@
             }
           }
         ],
-        "name": "test-sync-app-prod-workerHandler",
+        "name": "music-viz-stack-prod-workerHandler",
         "package": {},
         "memory": 1024,
         "vpc": {},
-        "versionLogicalId": "WorkerHandlerLambdaVersionFen3kMKB9uR2zVDgfyvDaveTlr5kPPu43WcY7eg6Pc"
+        "versionLogicalId": "WorkerHandlerLambdaVersionosfUVp5vaW9DpoBK0bUlJvTmrurVzysmWb2cf78"
       },
       "checkerHandler": {
         "image": {
@@ -1607,12 +1607,12 @@
             }
           }
         ],
-        "name": "test-sync-app-prod-checkerHandler",
+        "name": "music-viz-stack-prod-checkerHandler",
         "package": {},
         "memory": 1024,
         "timeout": 6,
         "vpc": {},
-        "versionLogicalId": "CheckerHandlerLambdaVersionHSgu4JtEsErQrM3k9IemraCRmetKIGynOaXrtkb3Ak8"
+        "versionLogicalId": "CheckerHandlerLambdaVersionCI7PEcRS8p5VULs8rCSisQs9vC2HTxUaHKkuULk"
       },
       "downloadHandler": {
         "image": {
@@ -1648,12 +1648,12 @@
             }
           }
         ],
-        "name": "test-sync-app-prod-downloadHandler",
+        "name": "music-viz-stack-prod-downloadHandler",
         "package": {},
         "memory": 1024,
         "timeout": 6,
         "vpc": {},
-        "versionLogicalId": "DownloadHandlerLambdaVersionOGJUb19GNKoU1VQuEe7I8H6a9y2cBrd5vayXS22anCE"
+        "versionLogicalId": "DownloadHandlerLambdaVersionDi0efvUFSXt4SJNvojXhmirMLVwlU4lZGiS1PlbUw"
       }
     },
     "resources": {
@@ -1840,7 +1840,7 @@
               ],
               "Enabled": true,
               "Aliases": [
-                "tester.earbuddy.link"
+                "musicviz.earbuddy.link"
               ],
               "ViewerCertificate": {
                 "SslSupportMethod": "sni-only",
@@ -1870,7 +1870,7 @@
             "HostedZoneId": "Z0928443148KWAYRV1TH7",
             "RecordSets": [
               {
-                "Name": "tester.earbuddy.link",
+                "Name": "musicviz.earbuddy.link",
                 "Type": "A",
                 "AliasTarget": {
                   "HostedZoneId": "Z2FDTNDATAQYW2",
@@ -1883,7 +1883,7 @@
                 }
               },
               {
-                "Name": "tester.earbuddy.link",
+                "Name": "musicviz.earbuddy.link",
                 "Type": "AAAA",
                 "AliasTarget": {
                   "HostedZoneId": "Z2FDTNDATAQYW2",
@@ -1901,10 +1901,10 @@
         "MusicVizCertificate": {
           "Type": "AWS::CertificateManager::Certificate",
           "Properties": {
-            "DomainName": "tester.earbuddy.link",
+            "DomainName": "musicviz.earbuddy.link",
             "DomainValidationOptions": [
               {
-                "DomainName": "tester.earbuddy.link",
+                "DomainName": "musicviz.earbuddy.link",
                 "HostedZoneId": "Z0928443148KWAYRV1TH7"
               }
             ],
@@ -2004,7 +2004,7 @@
         "CheckerDownloaderExecutionRole": {
           "Type": "AWS::IAM::Role",
           "Properties": {
-            "RoleName": "test-sync-app-prod-CheckerExecutionRole",
+            "RoleName": "music-viz-stack-prod-CheckerExecutionRole",
             "AssumeRolePolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
@@ -2019,7 +2019,7 @@
             },
             "Policies": [
               {
-                "PolicyName": "test-sync-app-prod-CheckerExecutionPolicy",
+                "PolicyName": "music-viz-stack-prod-CheckerExecutionPolicy",
                 "PolicyDocument": {
                   "Version": "2012-10-17",
                   "Statement": [
@@ -2169,7 +2169,7 @@
     "configValidationMode": "warn",
     "serviceFilename": "serverless.yml",
     "initialServerlessConfig": {
-      "service": "test-sync-app",
+      "service": "music-viz-stack",
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
       },
@@ -2179,8 +2179,8 @@
           "node_modules/**",
           "venv/**"
         ],
-        "artifactsS3KeyDirname": "serverless/test-sync-app/prod/code-artifacts",
-        "artifactDirectoryName": "serverless/test-sync-app/prod/1699473728210-2023-11-08T20:02:08.210Z"
+        "artifactsS3KeyDirname": "serverless/music-viz-stack/prod/code-artifacts",
+        "artifactDirectoryName": "serverless/music-viz-stack/prod/1699475495035-2023-11-08T20:31:35.035Z"
       },
       "resources": {
         "$ref": "$[\"service\"][\"resources\"]"
@@ -2194,7 +2194,7 @@
   },
   "package": {
     "individually": true,
-    "artifactDirectoryName": "serverless/test-sync-app/prod/1699473728210-2023-11-08T20:02:08.210Z",
+    "artifactDirectoryName": "serverless/music-viz-stack/prod/1699475495035-2023-11-08T20:31:35.035Z",
     "artifact": ""
   }
 }
